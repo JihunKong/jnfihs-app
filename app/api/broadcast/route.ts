@@ -153,24 +153,39 @@ async function translateToMultipleLanguages(text: string): Promise<Record<string
       contents: prompt,
     });
 
-    const responseText = response.text;
+    // Try multiple ways to get text from response
+    let responseText: string | undefined = response.text;
 
-    try {
-      // Extract JSON from response
-      const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const translations = JSON.parse(jsonMatch[0]);
-        // Always include Korean original
-        translations['ko'] = text;
-        return translations;
+    // Fallback: try candidates structure if text property is undefined
+    if (!responseText) {
+      const candidates = (response as any).candidates;
+      if (candidates?.[0]?.content?.parts?.[0]?.text) {
+        responseText = candidates[0].content.parts[0].text;
       }
-    } catch {
-      console.error('Failed to parse translation response:', responseText);
+    }
+
+    console.log('Translation API response text:', responseText?.substring(0, 200));
+
+    if (responseText) {
+      try {
+        // Extract JSON from response
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const translations = JSON.parse(jsonMatch[0]);
+          // Always include Korean original
+          translations['ko'] = text;
+          console.log('Translation success:', Object.keys(translations));
+          return translations;
+        }
+      } catch (parseError) {
+        console.error('Failed to parse translation response:', parseError);
+      }
     }
   } catch (error) {
-    console.error('Translation error:', error);
+    console.error('Translation API error:', error);
   }
 
   // Return original text for all languages if translation fails
+  console.log('Translation fallback - returning original text');
   return { ko: text, mn: text, ru: text, vi: text };
 }

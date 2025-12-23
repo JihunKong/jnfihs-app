@@ -33,7 +33,20 @@ ${REGULATIONS_CONTEXT}
       contents: systemPrompt,
     });
 
-    const text = response.text;
+    // Try multiple ways to get text from response
+    let text: string | undefined = response.text;
+
+    // Fallback: try candidates structure
+    if (!text) {
+      const candidates = (response as any).candidates;
+      if (candidates?.[0]?.content?.parts?.[0]?.text) {
+        text = candidates[0].content.parts[0].text;
+      }
+    }
+
+    if (!text) {
+      throw new Error('No text in response');
+    }
 
     return NextResponse.json({ reply: text });
   } catch (error) {
