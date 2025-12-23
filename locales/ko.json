@@ -92,26 +92,32 @@
   },
   "messenger": {
     "title": "메신저",
-    "newMessage": "새 메시지",
+    "selectTeacher": "선생님 선택",
+    "noTeachers": "등록된 선생님이 없습니다",
+    "startConversation": "대화를 시작해보세요",
     "placeholder": "메시지를 입력하세요...",
     "send": "전송"
   },
   "leave": {
     "title": "외출/외박 신청",
-    "type": "신청 유형",
-    "outing": "외출 (당일 귀사)",
-    "overnight": "외박 (1박 이상)",
-    "departure": "출발 일시",
-    "return": "복귀 일시",
+    "newRequest": "새 신청",
+    "leaveType": "신청 유형",
+    "types": {
+      "outing": "외출",
+      "overnight": "외박"
+    },
+    "date": "날짜",
+    "startDate": "시작일",
+    "endDate": "종료일",
     "destination": "목적지",
     "destinationPlaceholder": "예: 광주광역시 삼촌 댁",
-    "contact": "연락처",
-    "contactPlaceholder": "보호자 또는 방문지 연락처",
     "reason": "사유",
     "reasonPlaceholder": "외출/외박 사유를 입력하세요",
-    "guardianConsent": "보호자 동의 확인",
-    "submitRequest": "신청하기",
+    "submit": "신청하기",
+    "submitting": "신청 중...",
+    "submitted": "신청이 완료되었습니다",
     "history": "신청 내역",
+    "noRequests": "신청 내역이 없습니다",
     "status": {
       "pending": "대기중",
       "approved": "승인됨",
@@ -120,51 +126,57 @@
   },
   "health": {
     "title": "건강 체크",
-    "greeting": "좋은 아침이에요!",
+    "dailyCheck": "오늘의 건강 체크",
+    "alreadySubmitted": "오늘 이미 제출했습니다",
     "temperature": "체온",
-    "temperaturePlaceholder": "예: 36.5",
-    "condition": "오늘 컨디션은?",
-    "conditions": {
-      "excellent": "매우 좋음",
-      "good": "좋음",
-      "normal": "보통",
-      "poor": "안 좋음",
-      "sick": "아픔"
+    "howAreYou": "오늘 기분이 어때요?",
+    "feelings": {
+      "good": "좋아요",
+      "okay": "괜찮아요",
+      "bad": "안좋아요"
     },
     "symptoms": "증상 (해당 시 선택)",
-    "symptomsList": {
-      "headache": "두통",
+    "symptomList": {
       "cough": "기침",
-      "runnyNose": "콧물",
-      "soreThroat": "인후통",
-      "stomachache": "복통",
-      "fever": "발열",
+      "headache": "두통",
       "fatigue": "피로",
-      "other": "기타"
+      "soreThroat": "인후통",
+      "runnyNose": "콧물",
+      "bodyAche": "몸살"
     },
-    "submitCheck": "제출하기",
-    "todayCompleted": "오늘 건강 체크 완료!"
+    "additionalNotes": "추가 메모",
+    "notesPlaceholder": "특이사항이 있으면 적어주세요",
+    "submit": "제출하기",
+    "update": "수정하기",
+    "submitting": "제출 중...",
+    "submitted": "제출 완료!",
+    "weeklyHistory": "주간 건강 기록"
   },
   "meals": {
     "title": "급식 메뉴",
+    "dayView": "일별 보기",
+    "weekView": "주간 보기",
     "today": "오늘",
     "breakfast": "아침",
     "lunch": "점심",
     "dinner": "저녁",
-    "regular": "일반식",
-    "halal": "할랄식",
-    "allergens": "알레르기 유발 식품",
-    "noMeal": "급식 정보가 없습니다"
+    "allergenWarning": "알레르기 유발 식품",
+    "noMealInfo": "급식 정보가 없습니다"
   },
   "booking": {
     "title": "시설 예약",
     "selectFacility": "시설 선택",
+    "reservation": "예약",
     "selectDate": "날짜 선택",
     "selectTime": "시간 선택",
-    "available": "예약 가능",
-    "booked": "예약됨",
+    "noSlots": "예약 가능한 시간이 없습니다",
+    "purpose": "사용 목적",
+    "purposePlaceholder": "예: 농구 연습",
+    "capacity": "수용인원",
+    "bookNow": "예약하기",
+    "booking": "예약 중...",
+    "booked": "예약 완료!",
     "myBookings": "내 예약",
-    "book": "예약하기",
-    "cancelBooking": "예약 취소"
+    "noBookings": "예약 내역이 없습니다"
   }
 }

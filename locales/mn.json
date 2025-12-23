@@ -92,79 +92,91 @@
   },
   "messenger": {
     "title": "Мессенжер",
-    "newMessage": "Шинэ мессеж",
+    "selectTeacher": "Багш сонгох",
+    "noTeachers": "Бүртгэлтэй багш байхгүй",
+    "startConversation": "Яриа эхлүүлнэ үү",
     "placeholder": "Мессеж бичнэ үү...",
     "send": "Илгээх"
   },
   "leave": {
     "title": "Гадуур явах хүсэлт",
-    "type": "Хүсэлтийн төрөл",
-    "outing": "Гадуур явах (тухайн өдөр)",
-    "overnight": "Хоног хоноглох",
-    "departure": "Явах цаг",
-    "return": "Буцах цаг",
+    "newRequest": "Шинэ хүсэлт",
+    "leaveType": "Төрөл",
+    "types": {
+      "outing": "Гадагш гарах",
+      "overnight": "Хоноглох"
+    },
+    "date": "Огноо",
+    "startDate": "Эхлэх огноо",
+    "endDate": "Дуусах огноо",
     "destination": "Очих газар",
-    "destinationPlaceholder": "Жишээ: Гванжү хот, авга ахынд",
-    "contact": "Холбоо барих",
-    "contactPlaceholder": "Асран хамгаалагчийн утас",
+    "destinationPlaceholder": "Жишээ: Гэртээ",
     "reason": "Шалтгаан",
-    "reasonPlaceholder": "Гадуур явах шалтгаанаа бичнэ үү",
-    "guardianConsent": "Асран хамгаалагчийн зөвшөөрөл",
-    "submitRequest": "Хүсэлт илгээх",
+    "reasonPlaceholder": "Шалтгаанаа бичнэ үү",
+    "submit": "Хүсэлт илгээх",
+    "submitting": "Илгээж байна...",
+    "submitted": "Хүсэлт илгээгдсэн",
     "history": "Хүсэлтийн түүх",
+    "noRequests": "Хүсэлт байхгүй",
     "status": {
       "pending": "Хүлээгдэж байна",
-      "approved": "Зөвшөөрөгдсөн",
+      "approved": "Зөвшөөрсөн",
       "rejected": "Татгалзсан"
     }
   },
   "health": {
-    "title": "Эрүүл мэндийн шалгалт",
-    "greeting": "Өглөөний мэнд!",
-    "temperature": "Биеийн хэм",
-    "temperaturePlaceholder": "Жишээ: 36.5",
-    "condition": "Өнөөдрийн биеийн байдал?",
-    "conditions": {
-      "excellent": "Маш сайн",
+    "title": "Эрүүл мэнд",
+    "dailyCheck": "Өнөөдрийн эрүүл мэнд",
+    "alreadySubmitted": "Өнөөдөр аль хэдийн илгээсэн",
+    "temperature": "Биеийн халуун",
+    "howAreYou": "Өнөөдөр ямар байна?",
+    "feelings": {
       "good": "Сайн",
-      "normal": "Дунд зэрэг",
-      "poor": "Муу",
-      "sick": "Өвчтэй"
+      "okay": "Дунд зэрэг",
+      "bad": "Муу"
     },
     "symptoms": "Шинж тэмдэг (байвал сонгоно уу)",
-    "symptomsList": {
-      "headache": "Толгой өвдөх",
-      "cough": "Ханиалга",
-      "runnyNose": "Хамар гоожих",
-      "soreThroat": "Хоолой өвдөх",
-      "stomachache": "Гэдэс өвдөх",
-      "fever": "Халуурах",
-      "fatigue": "Ядрах",
-      "other": "Бусад"
+    "symptomList": {
+      "cough": "Ханиад",
+      "headache": "Толгой өвдөлт",
+      "fatigue": "Ядаргаа",
+      "soreThroat": "Хоолой өвдөлт",
+      "runnyNose": "Хамар урсах",
+      "bodyAche": "Бие өвдөх"
     },
-    "submitCheck": "Илгээх",
-    "todayCompleted": "Өнөөдрийн шалгалт дууссан!"
+    "additionalNotes": "Нэмэлт тэмдэглэл",
+    "notesPlaceholder": "Онцлох зүйл байвал бичнэ үү",
+    "submit": "Илгээх",
+    "update": "Засах",
+    "submitting": "Илгээж байна...",
+    "submitted": "Илгээгдсэн!",
+    "weeklyHistory": "Долоо хоногийн түүх"
   },
   "meals": {
     "title": "Хоолны цэс",
+    "dayView": "Өдрөөр",
+    "weekView": "Долоо хоногоор",
     "today": "Өнөөдөр",
-    "breakfast": "Өглөөний",
-    "lunch": "Үдийн",
-    "dinner": "Оройн",
-    "regular": "Энгийн",
-    "halal": "Халал",
-    "allergens": "Харшил үүсгэх бүтээгдэхүүн",
-    "noMeal": "Хоолны мэдээлэл байхгүй"
+    "breakfast": "Өглөөний хоол",
+    "lunch": "Өдрийн хоол",
+    "dinner": "Оройн хоол",
+    "allergenWarning": "Харшил үүсгэдэг хоол",
+    "noMealInfo": "Хоолны мэдээлэл байхгүй"
   },
   "booking": {
-    "title": "Байр захиалах",
-    "selectFacility": "Байр сонгох",
+    "title": "Захиалга",
+    "selectFacility": "Байгууламж сонгох",
+    "reservation": "Захиалга",
     "selectDate": "Огноо сонгох",
     "selectTime": "Цаг сонгох",
-    "available": "Боломжтой",
-    "booked": "Захиалагдсан",
-    "myBookings": "Миний захиалгууд",
-    "book": "Захиалах",
-    "cancelBooking": "Захиалга цуцлах"
+    "noSlots": "Боломжит цаг байхгүй",
+    "purpose": "Зорилго",
+    "purposePlaceholder": "Жишээ: Сагсан бөмбөг",
+    "capacity": "Багтаамж",
+    "bookNow": "Захиалах",
+    "booking": "Захиалж байна...",
+    "booked": "Захиалагдсан!",
+    "myBookings": "Миний захиалга",
+    "noBookings": "Захиалга байхгүй"
   }
 }

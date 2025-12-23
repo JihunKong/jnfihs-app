@@ -92,26 +92,32 @@
   },
   "messenger": {
     "title": "Tin nhắn",
-    "newMessage": "Tin nhắn mới",
+    "selectTeacher": "Chọn giáo viên",
+    "noTeachers": "Không có giáo viên nào",
+    "startConversation": "Bắt đầu trò chuyện",
     "placeholder": "Nhập tin nhắn...",
     "send": "Gửi"
   },
   "leave": {
     "title": "Xin phép ra ngoài/qua đêm",
-    "type": "Loại đơn",
-    "outing": "Ra ngoài (về trong ngày)",
-    "overnight": "Qua đêm (1+ đêm)",
-    "departure": "Thời gian đi",
-    "return": "Thời gian về",
+    "newRequest": "Đơn mới",
+    "leaveType": "Loại đơn",
+    "types": {
+      "outing": "Ra ngoài",
+      "overnight": "Qua đêm"
+    },
+    "date": "Ngày",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
     "destination": "Điểm đến",
     "destinationPlaceholder": "Ví dụ: Gwangju, nhà chú",
-    "contact": "Liên hệ",
-    "contactPlaceholder": "Số điện thoại phụ huynh",
     "reason": "Lý do",
     "reasonPlaceholder": "Nhập lý do xin phép",
-    "guardianConsent": "Xác nhận đồng ý của phụ huynh",
-    "submitRequest": "Gửi đơn",
+    "submit": "Gửi đơn",
+    "submitting": "Đang gửi...",
+    "submitted": "Đã gửi đơn",
     "history": "Lịch sử đơn",
+    "noRequests": "Không có đơn nào",
     "status": {
       "pending": "Đang chờ",
       "approved": "Đã duyệt",
@@ -120,51 +126,57 @@
   },
   "health": {
     "title": "Kiểm tra sức khỏe",
-    "greeting": "Chào buổi sáng!",
+    "dailyCheck": "Kiểm tra hàng ngày",
+    "alreadySubmitted": "Đã gửi hôm nay",
     "temperature": "Nhiệt độ",
-    "temperaturePlaceholder": "Ví dụ: 36.5",
-    "condition": "Bạn cảm thấy thế nào?",
-    "conditions": {
-      "excellent": "Rất tốt",
+    "howAreYou": "Bạn cảm thấy thế nào?",
+    "feelings": {
       "good": "Tốt",
-      "normal": "Bình thường",
-      "poor": "Không tốt",
-      "sick": "Bệnh"
+      "okay": "Bình thường",
+      "bad": "Không tốt"
     },
     "symptoms": "Triệu chứng (nếu có)",
-    "symptomsList": {
-      "headache": "Đau đầu",
+    "symptomList": {
       "cough": "Ho",
-      "runnyNose": "Sổ mũi",
-      "soreThroat": "Đau họng",
-      "stomachache": "Đau bụng",
-      "fever": "Sốt",
+      "headache": "Đau đầu",
       "fatigue": "Mệt mỏi",
-      "other": "Khác"
+      "soreThroat": "Đau họng",
+      "runnyNose": "Sổ mũi",
+      "bodyAche": "Đau người"
     },
-    "submitCheck": "Gửi",
-    "todayCompleted": "Đã hoàn thành kiểm tra hôm nay!"
+    "additionalNotes": "Ghi chú thêm",
+    "notesPlaceholder": "Nhập nếu có điều đặc biệt",
+    "submit": "Gửi",
+    "update": "Cập nhật",
+    "submitting": "Đang gửi...",
+    "submitted": "Đã gửi!",
+    "weeklyHistory": "Lịch sử tuần"
   },
   "meals": {
     "title": "Thực đơn",
+    "dayView": "Theo ngày",
+    "weekView": "Theo tuần",
     "today": "Hôm nay",
     "breakfast": "Sáng",
     "lunch": "Trưa",
     "dinner": "Tối",
-    "regular": "Thường",
-    "halal": "Halal",
-    "allergens": "Chất gây dị ứng",
-    "noMeal": "Không có thông tin thực đơn"
+    "allergenWarning": "Chất gây dị ứng",
+    "noMealInfo": "Không có thông tin thực đơn"
   },
   "booking": {
     "title": "Đặt phòng",
     "selectFacility": "Chọn phòng",
+    "reservation": "Đặt chỗ",
     "selectDate": "Chọn ngày",
     "selectTime": "Chọn giờ",
-    "available": "Còn trống",
-    "booked": "Đã đặt",
+    "noSlots": "Không có giờ trống",
+    "purpose": "Mục đích",
+    "purposePlaceholder": "Ví dụ: Tập bóng rổ",
+    "capacity": "Sức chứa",
+    "bookNow": "Đặt ngay",
+    "booking": "Đang đặt...",
+    "booked": "Đã đặt!",
     "myBookings": "Đặt chỗ của tôi",
-    "book": "Đặt",
-    "cancelBooking": "Hủy đặt"
+    "noBookings": "Không có đặt chỗ nào"
   }
 }

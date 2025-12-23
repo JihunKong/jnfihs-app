@@ -92,26 +92,32 @@
   },
   "messenger": {
     "title": "Мессенджер",
-    "newMessage": "Новое сообщение",
+    "selectTeacher": "Выбрать учителя",
+    "noTeachers": "Нет зарегистрированных учителей",
+    "startConversation": "Начните разговор",
     "placeholder": "Введите сообщение...",
     "send": "Отправить"
   },
   "leave": {
     "title": "Заявка на выход/ночёвку",
-    "type": "Тип заявки",
-    "outing": "Выход (в тот же день)",
-    "overnight": "Ночёвка (1+ ночей)",
-    "departure": "Время отъезда",
-    "return": "Время возвращения",
+    "newRequest": "Новая заявка",
+    "leaveType": "Тип заявки",
+    "types": {
+      "outing": "Выход",
+      "overnight": "Ночёвка"
+    },
+    "date": "Дата",
+    "startDate": "Дата начала",
+    "endDate": "Дата окончания",
     "destination": "Место назначения",
     "destinationPlaceholder": "Например: Кванджу, дом дяди",
-    "contact": "Контакт",
-    "contactPlaceholder": "Телефон родителя или места",
     "reason": "Причина",
     "reasonPlaceholder": "Введите причину выхода",
-    "guardianConsent": "Согласие родителя",
-    "submitRequest": "Отправить заявку",
+    "submit": "Отправить заявку",
+    "submitting": "Отправляется...",
+    "submitted": "Заявка отправлена",
     "history": "История заявок",
+    "noRequests": "Нет заявок",
     "status": {
       "pending": "На рассмотрении",
       "approved": "Одобрено",
@@ -120,51 +126,57 @@
   },
   "health": {
     "title": "Проверка здоровья",
-    "greeting": "Доброе утро!",
+    "dailyCheck": "Ежедневная проверка",
+    "alreadySubmitted": "Сегодня уже отправлено",
     "temperature": "Температура",
-    "temperaturePlaceholder": "Например: 36.5",
-    "condition": "Как вы себя чувствуете?",
-    "conditions": {
-      "excellent": "Отлично",
+    "howAreYou": "Как вы себя чувствуете?",
+    "feelings": {
       "good": "Хорошо",
-      "normal": "Нормально",
-      "poor": "Плохо",
-      "sick": "Болею"
+      "okay": "Нормально",
+      "bad": "Плохо"
     },
     "symptoms": "Симптомы (если есть)",
-    "symptomsList": {
-      "headache": "Головная боль",
+    "symptomList": {
       "cough": "Кашель",
-      "runnyNose": "Насморк",
-      "soreThroat": "Боль в горле",
-      "stomachache": "Боль в животе",
-      "fever": "Температура",
+      "headache": "Головная боль",
       "fatigue": "Усталость",
-      "other": "Другое"
+      "soreThroat": "Боль в горле",
+      "runnyNose": "Насморк",
+      "bodyAche": "Боль в теле"
     },
-    "submitCheck": "Отправить",
-    "todayCompleted": "Сегодняшняя проверка завершена!"
+    "additionalNotes": "Дополнительные заметки",
+    "notesPlaceholder": "Введите если есть особенности",
+    "submit": "Отправить",
+    "update": "Обновить",
+    "submitting": "Отправляется...",
+    "submitted": "Отправлено!",
+    "weeklyHistory": "История за неделю"
   },
   "meals": {
     "title": "Меню питания",
+    "dayView": "По дням",
+    "weekView": "По неделям",
     "today": "Сегодня",
     "breakfast": "Завтрак",
     "lunch": "Обед",
     "dinner": "Ужин",
-    "regular": "Обычное",
-    "halal": "Халяль",
-    "allergens": "Аллергены",
-    "noMeal": "Информация о питании отсутствует"
+    "allergenWarning": "Аллергены",
+    "noMealInfo": "Информация о питании отсутствует"
   },
   "booking": {
     "title": "Бронирование",
     "selectFacility": "Выбрать помещение",
+    "reservation": "Бронирование",
     "selectDate": "Выбрать дату",
     "selectTime": "Выбрать время",
-    "available": "Свободно",
-    "booked": "Занято",
+    "noSlots": "Нет доступного времени",
+    "purpose": "Цель",
+    "purposePlaceholder": "Например: Баскетбол",
+    "capacity": "Вместимость",
+    "bookNow": "Забронировать",
+    "booking": "Бронируется...",
+    "booked": "Забронировано!",
     "myBookings": "Мои брони",
-    "book": "Забронировать",
-    "cancelBooking": "Отменить бронь"
+    "noBookings": "Нет бронирований"
   }
 }
