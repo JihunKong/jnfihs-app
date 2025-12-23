@@ -1,0 +1,21 @@
+{
+  "name": "JNFIHS - 전남미래국제고",
+  "short_name": "JNFIHS",
+  "description": "전남미래국제고등학교 종합 플랫폼",
+  "start_url": "/ko",
+  "display": "standalone",
+  "background_color": "#FDF8EE",
+  "theme_color": "#FDF8EE",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
