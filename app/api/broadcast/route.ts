@@ -140,6 +140,8 @@ export async function GET(req: NextRequest) {
 }
 
 async function translateToMultipleLanguages(text: string): Promise<Record<string, string>> {
+  console.log('=== Starting translation for:', text);
+
   try {
     const prompt = `다음 한국어 문장을 3개 언어로 번역해주세요. 반드시 JSON 형식으로만 응답하세요. 다른 텍스트 없이 오직 JSON만 출력하세요.
 
@@ -148,23 +150,31 @@ async function translateToMultipleLanguages(text: string): Promise<Record<string
 응답 형식:
 {"mn": "몽골어 번역", "ru": "러시아어 번역", "vi": "베트남어 번역"}`;
 
+    console.log('Calling Gemini API...');
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
     });
+
+    console.log('Gemini API response received');
+    console.log('Response keys:', Object.keys(response));
+    console.log('Response.text type:', typeof response.text);
+    console.log('Response.text value:', response.text);
 
     // Try multiple ways to get text from response
     let responseText: string | undefined = response.text;
 
     // Fallback: try candidates structure if text property is undefined
     if (!responseText) {
+      console.log('response.text is empty, trying candidates...');
       const candidates = (response as any).candidates;
+      console.log('Candidates:', JSON.stringify(candidates)?.substring(0, 500));
       if (candidates?.[0]?.content?.parts?.[0]?.text) {
         responseText = candidates[0].content.parts[0].text;
+        console.log('Got text from candidates:', responseText);
       }
     }
-
-    console.log('Translation API response text:', responseText?.substring(0, 200));
 
     if (responseText) {
       try {
@@ -174,18 +184,27 @@ async function translateToMultipleLanguages(text: string): Promise<Record<string
           const translations = JSON.parse(jsonMatch[0]);
           // Always include Korean original
           translations['ko'] = text;
-          console.log('Translation success:', Object.keys(translations));
+          console.log('Translation SUCCESS:', JSON.stringify(translations));
           return translations;
+        } else {
+          console.log('No JSON found in response:', responseText);
         }
       } catch (parseError) {
-        console.error('Failed to parse translation response:', parseError);
+        console.error('JSON parse error:', parseError);
+        console.error('Raw response was:', responseText);
       }
+    } else {
+      console.log('No response text available');
     }
-  } catch (error) {
-    console.error('Translation API error:', error);
+  } catch (error: any) {
+    console.error('=== Translation API ERROR ===');
+    console.error('Error type:', error?.constructor?.name);
+    console.error('Error message:', error?.message);
+    console.error('Error stack:', error?.stack);
+    console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
   }
 
   // Return original text for all languages if translation fails
-  console.log('Translation fallback - returning original text');
+  console.log('=== Translation FALLBACK - returning original text ===');
   return { ko: text, mn: text, ru: text, vi: text };
 }
