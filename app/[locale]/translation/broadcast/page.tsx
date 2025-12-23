@@ -14,6 +14,7 @@ export default function BroadcastPage() {
   const [transcript, setTranscript] = useState('');
   const [copied, setCopied] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const lastSentRef = useRef('');
 
   const createSession = async () => {
     try {
@@ -68,8 +69,9 @@ export default function BroadcastPage() {
 
       setTranscript(interimTranscript || finalTranscript);
 
-      // Send final transcript to server
-      if (finalTranscript) {
+      // Send final transcript to server (prevent duplicates)
+      if (finalTranscript && finalTranscript !== lastSentRef.current) {
+        lastSentRef.current = finalTranscript;
         await fetch('/api/broadcast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

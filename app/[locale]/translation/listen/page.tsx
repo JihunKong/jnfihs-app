@@ -165,9 +165,9 @@ export default function ListenPage() {
                     {captions.map((caption, i) => (
                       <div key={i} className="caption-enter">
                         <p className="text-xl text-oat-900 font-medium mb-1">
-                          {caption.translated}
+                          {caption.original}
                         </p>
-                        <p className="text-sm text-oat-500">{caption.original}</p>
+                        <p className="text-sm text-oat-500">{caption.translated}</p>
                       </div>
                     ))}
                     <div ref={captionsEndRef} />
@@ -230,9 +230,9 @@ export default function ListenPage() {
               {captions.slice(-5).map((caption, i) => (
                 <div key={i} className="caption-enter">
                   <p className="text-lg text-oat-900 font-medium mb-1">
-                    {caption.translated}
+                    {caption.original}
                   </p>
-                  <p className="text-sm text-oat-500">{caption.original}</p>
+                  <p className="text-sm text-oat-500">{caption.translated}</p>
                 </div>
               ))}
               <div ref={captionsEndRef} />
