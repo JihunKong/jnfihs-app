@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     const languageName = languageNames[locale] || '한국어';
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
     const systemPrompt = `당신은 전남미래국제고등학교의 친절한 학생생활규정 안내 도우미입니다.
 학생들의 질문에 친절하고 정확하게 답변하세요.

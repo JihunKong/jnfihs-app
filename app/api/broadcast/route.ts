@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
 
 async function translateToMultipleLanguages(text: string): Promise<Record<string, string>> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
     const prompt = `다음 한국어 문장을 3개 언어로 번역해주세요. 반드시 JSON 형식으로만 응답하세요. 다른 텍스트 없이 오직 JSON만 출력하세요.
 
