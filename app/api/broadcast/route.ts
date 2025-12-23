@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 // In-memory store for active sessions (use Redis in production)
 const activeSessions = new Map<string, {
@@ -141,8 +141,6 @@ export async function GET(req: NextRequest) {
 
 async function translateToMultipleLanguages(text: string): Promise<Record<string, string>> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
-
     const prompt = `다음 한국어 문장을 3개 언어로 번역해주세요. 반드시 JSON 형식으로만 응답하세요. 다른 텍스트 없이 오직 JSON만 출력하세요.
 
 문장: "${text}"
@@ -150,23 +148,29 @@ async function translateToMultipleLanguages(text: string): Promise<Record<string
 응답 형식:
 {"mn": "몽골어 번역", "ru": "러시아어 번역", "vi": "베트남어 번역"}`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const responseText = response.text();
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+    });
+
+    const responseText = response.text;
 
     try {
       // Extract JSON from response
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      const jsonMatch = responseText?.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const translations = JSON.parse(jsonMatch[0]);
+        // Always include Korean original
+        translations['ko'] = text;
+        return translations;
       }
     } catch {
-      console.error('Failed to parse translation response');
+      console.error('Failed to parse translation response:', responseText);
     }
   } catch (error) {
     console.error('Translation error:', error);
   }
 
-  // Return original text if translation fails
-  return { mn: text, ru: text, vi: text };
+  // Return original text for all languages if translation fails
+  return { ko: text, mn: text, ru: text, vi: text };
 }

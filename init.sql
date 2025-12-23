@@ -135,6 +135,29 @@ INSERT INTO facilities (name, name_ko, capacity, reservation_unit) VALUES
   ('Counseling Room', '상담실', 2, 30)
 ON CONFLICT DO NOTHING;
 
+-- Korean learning progress (한국어 학습 진행)
+CREATE TABLE IF NOT EXISTS korean_learning_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id VARCHAR(100) UNIQUE NOT NULL,
+  xp INT DEFAULT 0,
+  streak INT DEFAULT 0,
+  total_correct INT DEFAULT 0,
+  total_attempts INT DEFAULT 0,
+  last_study_date DATE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Word images cache (단어 이미지 캐시)
+CREATE TABLE IF NOT EXISTS word_images (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  word_id VARCHAR(50) UNIQUE NOT NULL,
+  image_data TEXT NOT NULL,
+  mime_type VARCHAR(50) DEFAULT 'image/png',
+  prompt TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_chat_messages_user ON chat_messages(user_id);
 CREATE INDEX IF NOT EXISTS idx_broadcast_sessions_code ON broadcast_sessions(session_code);
@@ -145,3 +168,5 @@ CREATE INDEX IF NOT EXISTS idx_leave_requests_user ON leave_requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_health_checks_user_date ON health_checks(user_id, check_date);
 CREATE INDEX IF NOT EXISTS idx_meals_date ON meals(meal_date);
 CREATE INDEX IF NOT EXISTS idx_facility_bookings_facility ON facility_bookings(facility_id);
+CREATE INDEX IF NOT EXISTS idx_korean_learning_student ON korean_learning_progress(student_id);
+CREATE INDEX IF NOT EXISTS idx_word_images_word ON word_images(word_id);

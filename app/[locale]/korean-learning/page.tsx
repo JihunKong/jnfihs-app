@@ -62,13 +62,16 @@ export default function KoreanLearningPage() {
     localStorage.setItem('koreanLearningProgress', JSON.stringify(progress));
   }, []);
 
-  // Generate image for a word (optional, fallback to emoji)
+  // Generate image for a word (with caching via wordId)
   const generateImage = async (word: Word): Promise<string | null> => {
     try {
       const res = await fetch('/api/korean-learning/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: word.imagePrompt }),
+        body: JSON.stringify({
+          wordId: word.id,
+          prompt: word.imagePrompt
+        }),
       });
       const data = await res.json();
       return data.imageUrl || null;
