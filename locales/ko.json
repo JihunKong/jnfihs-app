@@ -54,6 +54,10 @@
       "booking": {
         "title": "시설 예약",
         "desc": "체력단련실, 음악실 등 예약"
+      },
+      "koreanLearning": {
+        "title": "한국어 학습",
+        "desc": "게임으로 한국어 배우기"
       }
     }
   },
@@ -178,5 +182,26 @@
     "booked": "예약 완료!",
     "myBookings": "내 예약",
     "noBookings": "예약 내역이 없습니다"
+  },
+  "koreanLearning": {
+    "title": "한국어 학습",
+    "level": "레벨",
+    "startQuiz": "퀴즈 시작하기",
+    "quizDescription": "이미지를 보고 단어를 맞춰보세요!",
+    "words": "단어",
+    "categories": {
+      "basic": "기초 단어",
+      "school": "학교 생활"
+    },
+    "unlock": "잠금해제",
+    "loading": "문제 준비 중...",
+    "listen": "발음 듣기",
+    "quizComplete": "퀴즈 완료!",
+    "score": "점수",
+    "xpEarned": "획득한 경험치",
+    "playAgain": "다시 하기",
+    "backToMenu": "메뉴로 돌아가기",
+    "levelUp": "레벨 업!",
+    "continue": "계속하기"
   }
 }

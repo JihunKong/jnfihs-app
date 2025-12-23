@@ -54,6 +54,10 @@
       "booking": {
         "title": "Đặt phòng",
         "desc": "Phòng gym, phòng nhạc"
+      },
+      "koreanLearning": {
+        "title": "Học tiếng Hàn",
+        "desc": "Học qua trò chơi"
       }
     }
   },
@@ -178,5 +182,26 @@
     "booked": "Đã đặt!",
     "myBookings": "Đặt chỗ của tôi",
     "noBookings": "Không có đặt chỗ nào"
+  },
+  "koreanLearning": {
+    "title": "Học tiếng Hàn",
+    "level": "Cấp độ",
+    "startQuiz": "Bắt đầu trắc nghiệm",
+    "quizDescription": "Nhìn hình và đoán từ!",
+    "words": "từ",
+    "categories": {
+      "basic": "Từ vựng cơ bản",
+      "school": "Cuộc sống học đường"
+    },
+    "unlock": "Mở khóa",
+    "loading": "Đang tải...",
+    "listen": "Nghe phát âm",
+    "quizComplete": "Hoàn thành!",
+    "score": "Điểm số",
+    "xpEarned": "Điểm kinh nghiệm",
+    "playAgain": "Chơi lại",
+    "backToMenu": "Về menu",
+    "levelUp": "Lên cấp!",
+    "continue": "Tiếp tục"
   }
 }

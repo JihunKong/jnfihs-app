@@ -12,6 +12,7 @@ import {
   Heart,
   UtensilsCrossed,
   Building,
+  GraduationCap,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { MobileNav } from '@/components/layout/MobileNav';
@@ -87,6 +88,14 @@ export default function DashboardPage() {
       title: t('dashboard.features.booking.title'),
       description: t('dashboard.features.booking.desc'),
       optimizedFor: 'chromebook' as const,
+    },
+    {
+      id: 'korean-learning',
+      href: `/${locale}/korean-learning`,
+      icon: GraduationCap,
+      title: t('dashboard.features.koreanLearning.title'),
+      description: t('dashboard.features.koreanLearning.desc'),
+      optimizedFor: 'both' as const,
     },
   ];
 
