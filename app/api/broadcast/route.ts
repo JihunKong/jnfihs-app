@@ -1,10 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // In-memory store for active sessions (use Redis in production)
 const activeSessions = new Map<string, {
@@ -143,31 +141,27 @@ export async function GET(req: NextRequest) {
 
 async function translateToMultipleLanguages(text: string): Promise<Record<string, string>> {
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      messages: [{
-        role: 'user',
-        content: `다음 한국어 문장을 3개 언어로 번역해주세요. 반드시 JSON 형식으로만 응답하세요. 다른 텍스트 없이 오직 JSON만 출력하세요.
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const prompt = `다음 한국어 문장을 3개 언어로 번역해주세요. 반드시 JSON 형식으로만 응답하세요. 다른 텍스트 없이 오직 JSON만 출력하세요.
 
 문장: "${text}"
 
 응답 형식:
-{"mn": "몽골어 번역", "ru": "러시아어 번역", "vi": "베트남어 번역"}`
-      }],
-    });
+{"mn": "몽골어 번역", "ru": "러시아어 번역", "vi": "베트남어 번역"}`;
 
-    const content = response.content[0];
-    if (content.type === 'text') {
-      try {
-        // Extract JSON from response
-        const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        }
-      } catch {
-        console.error('Failed to parse translation response');
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const responseText = response.text();
+
+    try {
+      // Extract JSON from response
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
       }
+    } catch {
+      console.error('Failed to parse translation response');
     }
   } catch (error) {
     console.error('Translation error:', error);

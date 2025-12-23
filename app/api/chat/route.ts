@@ -1,10 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { REGULATIONS_CONTEXT, languageNames } from '@/lib/regulations';
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,23 +17,33 @@ export async function POST(req: NextRequest) {
 
     const languageName = languageNames[locale] || '한국어';
 
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: `당신은 전남미래국제고등학교의 친절한 학생생활규정 안내 도우미입니다.
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+    const systemPrompt = `당신은 전남미래국제고등학교의 친절한 학생생활규정 안내 도우미입니다.
 학생들의 질문에 친절하고 정확하게 답변하세요.
 반드시 ${languageName}로 답변하세요.
 답변은 간결하고 이해하기 쉽게 작성하세요.
 답변 마지막에 관련 조항이 있다면 "(근거: 제N조)" 형식으로 표시하세요.
 
 참고할 학생생활규정:
-${REGULATIONS_CONTEXT}`,
-      messages: [{ role: 'user', content: message }],
+${REGULATIONS_CONTEXT}`;
+
+    const chat = model.startChat({
+      history: [
+        {
+          role: 'user',
+          parts: [{ text: systemPrompt }],
+        },
+        {
+          role: 'model',
+          parts: [{ text: '네, 전남미래국제고등학교 학생생활규정 안내 도우미로서 학생들의 질문에 친절하게 답변하겠습니다.' }],
+        },
+      ],
     });
 
-    const text = response.content[0].type === 'text'
-      ? response.content[0].text
-      : '';
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
 
     return NextResponse.json({ reply: text });
   } catch (error) {
