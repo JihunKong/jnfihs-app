@@ -1,0 +1,170 @@
+{
+  "common": {
+    "appName": "전남미래국제고",
+    "welcome": "환영합니다",
+    "back": "뒤로",
+    "submit": "제출",
+    "cancel": "취소",
+    "save": "저장",
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다"
+  },
+  "nav": {
+    "home": "홈",
+    "chat": "규정 문의",
+    "translation": "수업 번역",
+    "messenger": "메신저",
+    "leave": "외출 신청",
+    "health": "건강 체크",
+    "meals": "급식",
+    "booking": "시설 예약"
+  },
+  "dashboard": {
+    "greeting": "안녕하세요!",
+    "todayDate": "오늘",
+    "features": {
+      "chat": {
+        "title": "규정 문의",
+        "desc": "학교 규정에 대해 질문하세요"
+      },
+      "translation": {
+        "title": "수업 번역",
+        "desc": "실시간 수업 자막 보기"
+      },
+      "broadcast": {
+        "title": "수업 방송",
+        "desc": "수업 내용을 방송합니다"
+      },
+      "messenger": {
+        "title": "메신저",
+        "desc": "선생님과 대화하기"
+      },
+      "leave": {
+        "title": "외출/외박 신청",
+        "desc": "외출 및 외박 신청하기"
+      },
+      "health": {
+        "title": "건강 체크",
+        "desc": "오늘의 건강 상태 기록"
+      },
+      "meals": {
+        "title": "급식 메뉴",
+        "desc": "오늘의 급식 확인"
+      },
+      "booking": {
+        "title": "시설 예약",
+        "desc": "체력단련실, 음악실 등 예약"
+      }
+    }
+  },
+  "chat": {
+    "title": "규정 문의",
+    "placeholder": "질문을 입력하세요...",
+    "thinking": "답변 작성 중...",
+    "source": "근거 조항",
+    "suggestions": {
+      "title": "자주 묻는 질문",
+      "q1": "휴대폰은 언제 사용할 수 있나요?",
+      "q2": "외출 시간은 언제까지인가요?",
+      "q3": "할랄 급식은 어떻게 신청하나요?"
+    }
+  },
+  "translation": {
+    "title": "수업 번역",
+    "joinSession": "수업 참여",
+    "sessionCode": "수업 코드",
+    "sessionCodePlaceholder": "선생님이 알려준 코드 입력",
+    "connect": "연결하기",
+    "listening": "듣는 중...",
+    "waitingTeacher": "선생님의 수업을 기다리는 중...",
+    "notes": "내 노트",
+    "notesPlaceholder": "수업 내용을 메모하세요...",
+    "saveNotes": "노트 저장",
+    "autoSaved": "자동 저장됨",
+    "broadcast": {
+      "title": "수업 방송",
+      "startBroadcast": "방송 시작",
+      "stopBroadcast": "방송 중지",
+      "broadcasting": "방송 중...",
+      "shareCode": "학생들에게 이 코드를 알려주세요",
+      "currentText": "현재 인식 중"
+    }
+  },
+  "messenger": {
+    "title": "메신저",
+    "newMessage": "새 메시지",
+    "placeholder": "메시지를 입력하세요...",
+    "send": "전송"
+  },
+  "leave": {
+    "title": "외출/외박 신청",
+    "type": "신청 유형",
+    "outing": "외출 (당일 귀사)",
+    "overnight": "외박 (1박 이상)",
+    "departure": "출발 일시",
+    "return": "복귀 일시",
+    "destination": "목적지",
+    "destinationPlaceholder": "예: 광주광역시 삼촌 댁",
+    "contact": "연락처",
+    "contactPlaceholder": "보호자 또는 방문지 연락처",
+    "reason": "사유",
+    "reasonPlaceholder": "외출/외박 사유를 입력하세요",
+    "guardianConsent": "보호자 동의 확인",
+    "submitRequest": "신청하기",
+    "history": "신청 내역",
+    "status": {
+      "pending": "대기중",
+      "approved": "승인됨",
+      "rejected": "반려됨"
+    }
+  },
+  "health": {
+    "title": "건강 체크",
+    "greeting": "좋은 아침이에요!",
+    "temperature": "체온",
+    "temperaturePlaceholder": "예: 36.5",
+    "condition": "오늘 컨디션은?",
+    "conditions": {
+      "excellent": "매우 좋음",
+      "good": "좋음",
+      "normal": "보통",
+      "poor": "안 좋음",
+      "sick": "아픔"
+    },
+    "symptoms": "증상 (해당 시 선택)",
+    "symptomsList": {
+      "headache": "두통",
+      "cough": "기침",
+      "runnyNose": "콧물",
+      "soreThroat": "인후통",
+      "stomachache": "복통",
+      "fever": "발열",
+      "fatigue": "피로",
+      "other": "기타"
+    },
+    "submitCheck": "제출하기",
+    "todayCompleted": "오늘 건강 체크 완료!"
+  },
+  "meals": {
+    "title": "급식 메뉴",
+    "today": "오늘",
+    "breakfast": "아침",
+    "lunch": "점심",
+    "dinner": "저녁",
+    "regular": "일반식",
+    "halal": "할랄식",
+    "allergens": "알레르기 유발 식품",
+    "noMeal": "급식 정보가 없습니다"
+  },
+  "booking": {
+    "title": "시설 예약",
+    "selectFacility": "시설 선택",
+    "selectDate": "날짜 선택",
+    "selectTime": "시간 선택",
+    "available": "예약 가능",
+    "booked": "예약됨",
+    "myBookings": "내 예약",
+    "book": "예약하기",
+    "cancelBooking": "예약 취소"
+  }
+}

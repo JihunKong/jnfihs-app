@@ -1,0 +1,170 @@
+{
+  "common": {
+    "appName": "Trường THPT Quốc tế Jeonnam",
+    "welcome": "Chào mừng",
+    "back": "Quay lại",
+    "submit": "Gửi",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "chat": "Hỏi đáp",
+    "translation": "Dịch bài giảng",
+    "messenger": "Tin nhắn",
+    "leave": "Xin phép ra ngoài",
+    "health": "Sức khỏe",
+    "meals": "Thực đơn",
+    "booking": "Đặt phòng"
+  },
+  "dashboard": {
+    "greeting": "Xin chào!",
+    "todayDate": "Hôm nay",
+    "features": {
+      "chat": {
+        "title": "Hỏi về quy định",
+        "desc": "Hỏi về quy định của trường"
+      },
+      "translation": {
+        "title": "Dịch bài giảng",
+        "desc": "Phụ đề trực tiếp"
+      },
+      "broadcast": {
+        "title": "Phát sóng bài giảng",
+        "desc": "Phát nội dung bài giảng"
+      },
+      "messenger": {
+        "title": "Tin nhắn",
+        "desc": "Nhắn tin với giáo viên"
+      },
+      "leave": {
+        "title": "Xin phép ra ngoài",
+        "desc": "Nộp đơn xin phép"
+      },
+      "health": {
+        "title": "Sức khỏe",
+        "desc": "Ghi nhận tình trạng sức khỏe"
+      },
+      "meals": {
+        "title": "Thực đơn",
+        "desc": "Xem thực đơn hôm nay"
+      },
+      "booking": {
+        "title": "Đặt phòng",
+        "desc": "Phòng gym, phòng nhạc"
+      }
+    }
+  },
+  "chat": {
+    "title": "Hỏi về quy định",
+    "placeholder": "Nhập câu hỏi của bạn...",
+    "thinking": "Đang soạn câu trả lời...",
+    "source": "Nguồn",
+    "suggestions": {
+      "title": "Câu hỏi thường gặp",
+      "q1": "Khi nào được dùng điện thoại?",
+      "q2": "Được ra ngoài đến mấy giờ?",
+      "q3": "Làm sao để đặt đồ ăn Halal?"
+    }
+  },
+  "translation": {
+    "title": "Dịch bài giảng",
+    "joinSession": "Tham gia lớp học",
+    "sessionCode": "Mã lớp học",
+    "sessionCodePlaceholder": "Nhập mã từ giáo viên",
+    "connect": "Kết nối",
+    "listening": "Đang nghe...",
+    "waitingTeacher": "Đang chờ giáo viên...",
+    "notes": "Ghi chú của tôi",
+    "notesPlaceholder": "Ghi chú bài giảng...",
+    "saveNotes": "Lưu ghi chú",
+    "autoSaved": "Đã tự động lưu",
+    "broadcast": {
+      "title": "Phát sóng bài giảng",
+      "startBroadcast": "Bắt đầu phát",
+      "stopBroadcast": "Dừng phát",
+      "broadcasting": "Đang phát...",
+      "shareCode": "Cho học sinh mã này",
+      "currentText": "Văn bản hiện tại"
+    }
+  },
+  "messenger": {
+    "title": "Tin nhắn",
+    "newMessage": "Tin nhắn mới",
+    "placeholder": "Nhập tin nhắn...",
+    "send": "Gửi"
+  },
+  "leave": {
+    "title": "Xin phép ra ngoài/qua đêm",
+    "type": "Loại đơn",
+    "outing": "Ra ngoài (về trong ngày)",
+    "overnight": "Qua đêm (1+ đêm)",
+    "departure": "Thời gian đi",
+    "return": "Thời gian về",
+    "destination": "Điểm đến",
+    "destinationPlaceholder": "Ví dụ: Gwangju, nhà chú",
+    "contact": "Liên hệ",
+    "contactPlaceholder": "Số điện thoại phụ huynh",
+    "reason": "Lý do",
+    "reasonPlaceholder": "Nhập lý do xin phép",
+    "guardianConsent": "Xác nhận đồng ý của phụ huynh",
+    "submitRequest": "Gửi đơn",
+    "history": "Lịch sử đơn",
+    "status": {
+      "pending": "Đang chờ",
+      "approved": "Đã duyệt",
+      "rejected": "Từ chối"
+    }
+  },
+  "health": {
+    "title": "Kiểm tra sức khỏe",
+    "greeting": "Chào buổi sáng!",
+    "temperature": "Nhiệt độ",
+    "temperaturePlaceholder": "Ví dụ: 36.5",
+    "condition": "Bạn cảm thấy thế nào?",
+    "conditions": {
+      "excellent": "Rất tốt",
+      "good": "Tốt",
+      "normal": "Bình thường",
+      "poor": "Không tốt",
+      "sick": "Bệnh"
+    },
+    "symptoms": "Triệu chứng (nếu có)",
+    "symptomsList": {
+      "headache": "Đau đầu",
+      "cough": "Ho",
+      "runnyNose": "Sổ mũi",
+      "soreThroat": "Đau họng",
+      "stomachache": "Đau bụng",
+      "fever": "Sốt",
+      "fatigue": "Mệt mỏi",
+      "other": "Khác"
+    },
+    "submitCheck": "Gửi",
+    "todayCompleted": "Đã hoàn thành kiểm tra hôm nay!"
+  },
+  "meals": {
+    "title": "Thực đơn",
+    "today": "Hôm nay",
+    "breakfast": "Sáng",
+    "lunch": "Trưa",
+    "dinner": "Tối",
+    "regular": "Thường",
+    "halal": "Halal",
+    "allergens": "Chất gây dị ứng",
+    "noMeal": "Không có thông tin thực đơn"
+  },
+  "booking": {
+    "title": "Đặt phòng",
+    "selectFacility": "Chọn phòng",
+    "selectDate": "Chọn ngày",
+    "selectTime": "Chọn giờ",
+    "available": "Còn trống",
+    "booked": "Đã đặt",
+    "myBookings": "Đặt chỗ của tôi",
+    "book": "Đặt",
+    "cancelBooking": "Hủy đặt"
+  }
+}

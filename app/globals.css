@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+:root {
+  --glass-bg: rgba(253, 248, 238, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px rgba(92, 69, 40, 0.1);
+}
+
+body {
+  @apply bg-oat-50 text-oat-900 antialiased;
+  min-height: 100vh;
+}
+
+/* Glassmorphism utilities */
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl p-6;
+  }
+
+  .glass-card-sm {
+    @apply glass rounded-xl p-4;
+  }
+
+  .glass-button {
+    @apply glass rounded-xl px-6 py-3 font-medium;
+    @apply hover:bg-oat-200/80 active:bg-oat-300/80;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-oat-500/50;
+  }
+
+  .glass-button-primary {
+    @apply bg-oat-700 text-white rounded-xl px-6 py-3 font-medium;
+    @apply hover:bg-oat-800 active:bg-oat-900;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-oat-500/50;
+    border: none;
+    box-shadow: 0 4px 16px rgba(154, 123, 74, 0.3);
+  }
+
+  .glass-input {
+    @apply glass rounded-xl px-4 py-3 w-full;
+    @apply focus:outline-none focus:ring-2 focus:ring-oat-500/50;
+    @apply placeholder:text-oat-400;
+  }
+
+  .glass-header {
+    @apply glass sticky top-0 z-50;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  /* Feature tile for dashboard */
+  .feature-tile {
+    @apply glass-card cursor-pointer;
+    @apply hover:bg-oat-100/90 hover:shadow-glass-lg;
+    @apply hover:-translate-y-1;
+    @apply transition-all duration-300;
+  }
+
+  /* Mobile navigation */
+  .mobile-nav {
+    @apply glass fixed bottom-0 left-0 right-0 z-50;
+    @apply flex justify-around items-center py-2;
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .mobile-nav-item {
+    @apply flex flex-col items-center gap-1 p-2;
+    @apply text-oat-600 hover:text-oat-800;
+    @apply transition-colors duration-200;
+  }
+
+  .mobile-nav-item.active {
+    @apply text-oat-800;
+  }
+}
+
+/* Responsive utilities */
+@layer utilities {
+  /* Safe area padding for mobile */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Caption animation for translation */
+@keyframes caption-appear {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.caption-enter {
+  animation: caption-appear 0.2s ease-out;
+}

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: jnfihs-db
+    environment:
+      POSTGRES_DB: jnfihs
+      POSTGRES_USER: jnfihs
+      POSTGRES_PASSWORD: jnfihs123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: jnfihs-app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://jnfihs:jnfihs123@postgres:5432/jnfihs
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
