@@ -252,16 +252,16 @@ export default function AnnouncementsPage() {
                 variant="primary"
                 onClick={handleSubmit}
                 disabled={isSubmitting || !newTitle.trim() || !newContent.trim()}
-                className="w-full"
+                className="w-full flex items-center justify-center whitespace-nowrap"
               >
                 {isSubmitting ? (
                   <>
-                    <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                    <RefreshCw className="w-5 h-5 mr-2 animate-spin flex-shrink-0" />
                     번역 중...
                   </>
                 ) : (
                   <>
-                    <Send className="w-5 h-5 mr-2" />
+                    <Send className="w-5 h-5 mr-2 flex-shrink-0" />
                     공지 등록 (자동 번역)
                   </>
                 )}

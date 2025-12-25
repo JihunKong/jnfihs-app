@@ -252,18 +252,18 @@ export default function ParentPortalPage() {
                   variant="primary"
                   onClick={handleTranslate}
                   disabled={isTranslating || !inputMessage.trim()}
-                  className="w-full"
+                  className="w-full flex items-center justify-center whitespace-nowrap"
                 >
                   {isTranslating ? (
                     <>
-                      <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                      <RefreshCw className="w-5 h-5 mr-2 animate-spin flex-shrink-0" />
                       {currentLocale === 'ko' ? '번역 중...' :
                        currentLocale === 'mn' ? 'Орчуулж байна...' :
                        currentLocale === 'ru' ? 'Перевод...' : 'Đang dịch...'}
                     </>
                   ) : (
                     <>
-                      <Send className="w-5 h-5 mr-2" />
+                      <Send className="w-5 h-5 mr-2 flex-shrink-0" />
                       {currentLocale === 'ko' ? '한국어로 번역' :
                        currentLocale === 'mn' ? 'Солонгос хэлрүү орчуулах' :
                        currentLocale === 'ru' ? 'Перевести на корейский' :
