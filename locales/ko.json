@@ -58,6 +58,26 @@
       "koreanLearning": {
         "title": "한국어 학습",
         "desc": "게임으로 한국어 배우기"
+      },
+      "emergencyCards": {
+        "title": "긴급 상황 카드",
+        "desc": "급할 때 보여줄 카드"
+      },
+      "healthPointer": {
+        "title": "어디가 아파요?",
+        "desc": "증상을 선택해서 보여주기"
+      },
+      "phrases": {
+        "title": "필수 문장",
+        "desc": "자주 쓰는 한국어 문장"
+      },
+      "announcements": {
+        "title": "공지사항",
+        "desc": "학교 공지 번역 보기"
+      },
+      "parentPortal": {
+        "title": "학부모 포털",
+        "desc": "학부모님을 위한 정보"
       }
     }
   },

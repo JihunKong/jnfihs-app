@@ -1,15 +1,23 @@
 // Test script for Gemini API
+// Usage: GEMINI_API_KEY=your_key node test-gemini.js
+// Or: node test-gemini.js YOUR_API_KEY_HERE
 const { GoogleGenAI } = require('@google/genai');
 
 async function testGemini() {
-  const apiKey = process.env.GEMINI_API_KEY;
+  // Accept API key from command line argument or environment variable
+  const apiKey = process.argv[2] || process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    console.error('ERROR: GEMINI_API_KEY not set');
+    console.error('ERROR: API key not provided');
+    console.error('Usage: node test-gemini.js YOUR_API_KEY');
+    console.error('   Or: GEMINI_API_KEY=xxx node test-gemini.js');
     return;
   }
 
-  console.log('API Key:', apiKey.substring(0, 10) + '...');
+  console.log('API Key length:', apiKey.length);
+  console.log('API Key prefix:', apiKey.substring(0, 10) + '...');
+  console.log('API Key has spaces:', apiKey.includes(' '));
+  console.log('API Key has quotes:', apiKey.includes('"') || apiKey.includes("'"));
 
   const ai = new GoogleGenAI({ apiKey });
 

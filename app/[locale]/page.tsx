@@ -13,6 +13,11 @@ import {
   UtensilsCrossed,
   Building,
   GraduationCap,
+  AlertCircle,
+  Stethoscope,
+  BookOpen,
+  Bell,
+  Users,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { MobileNav } from '@/components/layout/MobileNav';
@@ -95,6 +100,46 @@ export default function DashboardPage() {
       icon: GraduationCap,
       title: t('dashboard.features.koreanLearning.title'),
       description: t('dashboard.features.koreanLearning.desc'),
+      optimizedFor: 'both' as const,
+    },
+    {
+      id: 'emergency-cards',
+      href: `/${locale}/emergency-cards`,
+      icon: AlertCircle,
+      title: t('dashboard.features.emergencyCards.title'),
+      description: t('dashboard.features.emergencyCards.desc'),
+      optimizedFor: 'mobile' as const,
+    },
+    {
+      id: 'health-pointer',
+      href: `/${locale}/health-pointer`,
+      icon: Stethoscope,
+      title: t('dashboard.features.healthPointer.title'),
+      description: t('dashboard.features.healthPointer.desc'),
+      optimizedFor: 'mobile' as const,
+    },
+    {
+      id: 'phrases',
+      href: `/${locale}/phrases`,
+      icon: BookOpen,
+      title: t('dashboard.features.phrases.title'),
+      description: t('dashboard.features.phrases.desc'),
+      optimizedFor: 'both' as const,
+    },
+    {
+      id: 'announcements',
+      href: `/${locale}/announcements`,
+      icon: Bell,
+      title: t('dashboard.features.announcements.title'),
+      description: t('dashboard.features.announcements.desc'),
+      optimizedFor: 'both' as const,
+    },
+    {
+      id: 'parent-portal',
+      href: `/${locale}/parent-portal`,
+      icon: Users,
+      title: t('dashboard.features.parentPortal.title'),
+      description: t('dashboard.features.parentPortal.desc'),
       optimizedFor: 'both' as const,
     },
   ];

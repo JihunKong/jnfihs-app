@@ -58,6 +58,26 @@
       "koreanLearning": {
         "title": "Học tiếng Hàn",
         "desc": "Học qua trò chơi"
+      },
+      "emergencyCards": {
+        "title": "Thẻ khẩn cấp",
+        "desc": "Thẻ cho trường hợp khẩn cấp"
+      },
+      "healthPointer": {
+        "title": "Đau ở đâu?",
+        "desc": "Chọn triệu chứng và cho xem"
+      },
+      "phrases": {
+        "title": "Cụm từ hữu ích",
+        "desc": "Các câu tiếng Hàn thông dụng"
+      },
+      "announcements": {
+        "title": "Thông báo",
+        "desc": "Thông báo trường có bản dịch"
+      },
+      "parentPortal": {
+        "title": "Cổng thông tin phụ huynh",
+        "desc": "Thông tin cho phụ huynh"
       }
     }
   },
