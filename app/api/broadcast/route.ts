@@ -1,18 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { activeSessions, broadcastEmitter } from '@/lib/broadcast-store';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
-
-// In-memory store for active sessions (use Redis in production)
-const activeSessions = new Map<string, {
-  messages: Array<{
-    original: string;
-    translations: Record<string, string>;
-    timestamp: number;
-  }>;
-  createdAt: number;
-}>();
 
 // POST: Teacher broadcasts text
 export async function POST(req: NextRequest) {
@@ -68,12 +59,13 @@ export async function POST(req: NextRequest) {
 
     // Store in memory
     const session = activeSessions.get(sessionId);
+    const message = {
+      original: text,
+      translations,
+      timestamp: Date.now(),
+    };
+
     if (session) {
-      const message = {
-        original: text,
-        translations,
-        timestamp: Date.now(),
-      };
       session.messages.push(message);
 
       // Keep only last 100 messages
@@ -94,14 +86,13 @@ export async function POST(req: NextRequest) {
     } else {
       // Create session if it doesn't exist
       activeSessions.set(sessionId, {
-        messages: [{
-          original: text,
-          translations,
-          timestamp: Date.now(),
-        }],
+        messages: [message],
         createdAt: Date.now(),
       });
     }
+
+    // SSE: 새 메시지 이벤트 발생 (실시간 푸시)
+    broadcastEmitter.emit(`session:${sessionId}`, message);
 
     return NextResponse.json({ success: true, translations });
   } catch (error) {
@@ -139,72 +130,62 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ messages, active: true });
 }
 
-async function translateToMultipleLanguages(text: string): Promise<Record<string, string>> {
-  console.log('=== Starting translation for:', text);
+// 단일 언어 번역 함수 (병렬 호출용)
+async function translateToLanguage(text: string, targetLang: string): Promise<string> {
+  const langNames: Record<string, string> = {
+    mn: '몽골어',
+    ru: '러시아어',
+    vi: '베트남어'
+  };
 
   try {
-    const prompt = `다음 한국어 문장을 3개 언어로 번역해주세요. 반드시 JSON 형식으로만 응답하세요. 다른 텍스트 없이 오직 JSON만 출력하세요.
-
-문장: "${text}"
-
-응답 형식:
-{"mn": "몽골어 번역", "ru": "러시아어 번역", "vi": "베트남어 번역"}`;
-
-    console.log('Calling Gemini API...');
+    const prompt = `다음 한국어를 ${langNames[targetLang]}로 번역하세요. 번역문만 출력하세요. 다른 설명 없이 번역 결과만:\n"${text}"`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
     });
 
-    console.log('Gemini API response received');
-    console.log('Response keys:', Object.keys(response));
-    console.log('Response.text type:', typeof response.text);
-    console.log('Response.text value:', response.text);
-
-    // Try multiple ways to get text from response
     let responseText: string | undefined = response.text;
 
-    // Fallback: try candidates structure if text property is undefined
+    // Fallback: try candidates structure
     if (!responseText) {
-      console.log('response.text is empty, trying candidates...');
       const candidates = (response as any).candidates;
-      console.log('Candidates:', JSON.stringify(candidates)?.substring(0, 500));
       if (candidates?.[0]?.content?.parts?.[0]?.text) {
         responseText = candidates[0].content.parts[0].text;
-        console.log('Got text from candidates:', responseText);
       }
     }
 
     if (responseText) {
-      try {
-        // Extract JSON from response
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const translations = JSON.parse(jsonMatch[0]);
-          // Always include Korean original
-          translations['ko'] = text;
-          console.log('Translation SUCCESS:', JSON.stringify(translations));
-          return translations;
-        } else {
-          console.log('No JSON found in response:', responseText);
-        }
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        console.error('Raw response was:', responseText);
-      }
-    } else {
-      console.log('No response text available');
+      // 따옴표 제거 및 정리
+      return responseText.trim().replace(/^["']|["']$/g, '');
     }
-  } catch (error: any) {
-    console.error('=== Translation API ERROR ===');
-    console.error('Error type:', error?.constructor?.name);
-    console.error('Error message:', error?.message);
-    console.error('Error stack:', error?.stack);
-    console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+  } catch (error) {
+    console.error(`Translation to ${targetLang} failed:`, error);
   }
 
-  // Return original text for all languages if translation fails
-  console.log('=== Translation FALLBACK - returning original text ===');
-  return { ko: text, mn: text, ru: text, vi: text };
+  return text; // 실패 시 원문 반환
+}
+
+// 모든 언어로 병렬 번역
+async function translateToMultipleLanguages(text: string): Promise<Record<string, string>> {
+  console.log('=== Starting parallel translation for:', text);
+  const startTime = Date.now();
+
+  try {
+    // 3개 언어를 병렬로 동시 번역
+    const [mn, ru, vi] = await Promise.all([
+      translateToLanguage(text, 'mn'),
+      translateToLanguage(text, 'ru'),
+      translateToLanguage(text, 'vi'),
+    ]);
+
+    const elapsed = Date.now() - startTime;
+    console.log(`=== Parallel translation completed in ${elapsed}ms ===`);
+
+    return { ko: text, mn, ru, vi };
+  } catch (error) {
+    console.error('Parallel translation error:', error);
+    return { ko: text, mn: text, ru: text, vi: text };
+  }
 }

@@ -51,28 +51,42 @@ export default function ListenPage() {
     }
   }, [notes, sessionCode, connected]);
 
-  // Poll for captions
+  // SSE: 실시간 자막 수신 (폴링 대신 EventSource 사용)
   useEffect(() => {
     if (!connected || !sessionCode) return;
 
-    const poll = async () => {
-      try {
-        const res = await fetch(
-          `/api/broadcast?sessionId=${sessionCode}&locale=${locale}&since=${lastTimestampRef.current}`
-        );
-        const data = await res.json();
+    const eventSource = new EventSource(
+      `/api/broadcast/stream?sessionId=${sessionCode}&locale=${locale}`
+    );
 
-        if (data.messages && data.messages.length > 0) {
-          setCaptions((prev) => [...prev, ...data.messages]);
-          lastTimestampRef.current = data.messages[data.messages.length - 1].timestamp;
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'message') {
+          const caption: Caption = {
+            original: data.original,
+            translated: data.translated,
+            timestamp: data.timestamp,
+          };
+          setCaptions((prev) => [...prev, caption]);
+          lastTimestampRef.current = data.timestamp;
+        } else if (data.type === 'connected') {
+          console.log('SSE connected to session:', sessionCode);
         }
       } catch (error) {
-        console.error('Polling error:', error);
+        console.error('SSE message parse error:', error);
       }
     };
 
-    const interval = setInterval(poll, 500);
-    return () => clearInterval(interval);
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      // 연결 끊김 시 자동 재연결 시도 (브라우저 기본 동작)
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, [connected, sessionCode, locale]);
 
   // Scroll to latest caption
