@@ -1,16 +1,14 @@
 import { GoogleGenAI } from '@google/genai';
-import { TranslationServiceClient } from '@google-cloud/translate';
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { activeSessions, broadcastEmitter, translationCache } from '@/lib/broadcast-store';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
-// Google Cloud Translation 클라이언트 (빠른 초벌 번역용)
-const googleTranslate = new TranslationServiceClient();
-const GOOGLE_PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || '';
+// Google Translation API 키 (REST API용)
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || '';
 
-// 언어 코드 매핑 (Google Cloud Translation용)
+// 언어 코드 매핑
 const langCodeMap: Record<string, string> = {
   mn: 'mn', // 몽골어
   ru: 'ru', // 러시아어
@@ -143,7 +141,7 @@ async function translateToLanguage(text: string, targetLang: string): Promise<st
   return text; // 실패 시 원문 반환
 }
 
-// Google Cloud Translation으로 빠른 번역 (캐시 확인 포함)
+// Google Translation REST API로 빠른 번역 (캐시 확인 포함)
 async function translateFast(text: string, targetLang: string): Promise<string> {
   // 1. 캐시 확인
   const cacheKey = `${text}:${targetLang}`;
@@ -153,21 +151,34 @@ async function translateFast(text: string, targetLang: string): Promise<string> 
     return cached;
   }
 
-  // 2. Google Cloud Translation API 호출
+  // 2. Google Translation REST API 호출
   try {
-    if (!GOOGLE_PROJECT_ID) {
-      console.log('Google Cloud Project ID not set, falling back to Gemini');
-      return text; // 설정 안됨 → 원문 반환
+    if (!GOOGLE_API_KEY) {
+      console.log('Google API Key not set, using original text');
+      return text;
     }
 
-    const [response] = await googleTranslate.translateText({
-      parent: `projects/${GOOGLE_PROJECT_ID}/locations/global`,
-      contents: [text],
-      sourceLanguageCode: 'ko',
-      targetLanguageCode: langCodeMap[targetLang],
-    });
+    const response = await fetch(
+      `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: text,
+          source: 'ko',
+          target: langCodeMap[targetLang],
+          format: 'text',
+        }),
+      }
+    );
 
-    const translated = response.translations?.[0]?.translatedText || text;
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    const translated = data.data?.translations?.[0]?.translatedText || text;
+    console.log(`Google translated to ${targetLang}: ${translated.substring(0, 30)}...`);
     return translated;
   } catch (error) {
     console.error(`Google Translation failed for ${targetLang}:`, error);
