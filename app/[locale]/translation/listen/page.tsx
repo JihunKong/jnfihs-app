@@ -14,6 +14,7 @@ type Caption = {
   original: string;
   translated: string;
   timestamp: number;
+  provisional?: boolean; // 초벌 번역 여부
 };
 
 export default function ListenPage() {
@@ -68,8 +69,21 @@ export default function ListenPage() {
             original: data.original,
             translated: data.translated,
             timestamp: data.timestamp,
+            provisional: data.provisional,
           };
-          setCaptions((prev) => [...prev, caption]);
+
+          setCaptions((prev) => {
+            // 동일 타임스탬프의 메시지가 있으면 업데이트 (provisional → final)
+            const existingIndex = prev.findIndex(c => c.timestamp === data.timestamp);
+            if (existingIndex !== -1) {
+              const updated = [...prev];
+              updated[existingIndex] = caption;
+              return updated;
+            }
+            // 새 메시지 추가
+            return [...prev, caption];
+          });
+
           lastTimestampRef.current = data.timestamp;
         } else if (data.type === 'connected') {
           console.log('SSE connected to session:', sessionCode);
@@ -177,11 +191,23 @@ export default function ListenPage() {
                 ) : (
                   <div className="space-y-4">
                     {captions.map((caption, i) => (
-                      <div key={i} className="caption-enter">
+                      <div
+                        key={caption.timestamp}
+                        className={`caption-enter transition-opacity duration-300 ${
+                          caption.provisional ? 'opacity-60' : 'opacity-100'
+                        }`}
+                      >
                         <p className="text-xl text-oat-900 font-medium mb-1">
                           {caption.original}
                         </p>
-                        <p className="text-sm text-oat-500">{caption.translated}</p>
+                        <p className="text-sm text-oat-500">
+                          {caption.translated}
+                          {caption.provisional && (
+                            <span className="ml-2 text-xs text-oat-400 animate-pulse">
+                              (번역 중...)
+                            </span>
+                          )}
+                        </p>
                       </div>
                     ))}
                     <div ref={captionsEndRef} />
@@ -242,11 +268,23 @@ export default function ListenPage() {
           ) : (
             <div className="space-y-4">
               {captions.slice(-5).map((caption, i) => (
-                <div key={i} className="caption-enter">
+                <div
+                  key={caption.timestamp}
+                  className={`caption-enter transition-opacity duration-300 ${
+                    caption.provisional ? 'opacity-60' : 'opacity-100'
+                  }`}
+                >
                   <p className="text-lg text-oat-900 font-medium mb-1">
                     {caption.original}
                   </p>
-                  <p className="text-sm text-oat-500">{caption.translated}</p>
+                  <p className="text-sm text-oat-500">
+                    {caption.translated}
+                    {caption.provisional && (
+                      <span className="ml-2 text-xs text-oat-400 animate-pulse">
+                        (번역 중...)
+                      </span>
+                    )}
+                  </p>
                 </div>
               ))}
               <div ref={captionsEndRef} />

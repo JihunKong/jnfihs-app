@@ -1,9 +1,21 @@
 import { GoogleGenAI } from '@google/genai';
+import { TranslationServiceClient } from '@google-cloud/translate';
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { activeSessions, broadcastEmitter } from '@/lib/broadcast-store';
+import { activeSessions, broadcastEmitter, translationCache } from '@/lib/broadcast-store';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+
+// Google Cloud Translation 클라이언트 (빠른 초벌 번역용)
+const googleTranslate = new TranslationServiceClient();
+const GOOGLE_PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT || '';
+
+// 언어 코드 매핑 (Google Cloud Translation용)
+const langCodeMap: Record<string, string> = {
+  mn: 'mn', // 몽골어
+  ru: 'ru', // 러시아어
+  vi: 'vi', // 베트남어
+};
 
 // POST: Teacher broadcasts text
 export async function POST(req: NextRequest) {
@@ -54,47 +66,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Translate to multiple languages
-    const translations = await translateToMultipleLanguages(text);
+    // 다단계 번역 실행 (비동기로 백그라운드 처리)
+    translateWithTwoPhases(text, sessionId).catch(console.error);
 
-    // Store in memory
-    const session = activeSessions.get(sessionId);
-    const message = {
-      original: text,
-      translations,
-      timestamp: Date.now(),
-    };
-
-    if (session) {
-      session.messages.push(message);
-
-      // Keep only last 100 messages
-      if (session.messages.length > 100) {
-        session.messages = session.messages.slice(-100);
-      }
-
-      // Save to database
-      try {
-        await query(
-          `INSERT INTO broadcast_captions (session_id, original_text, translations)
-           SELECT id, $2, $3 FROM broadcast_sessions WHERE session_code = $1`,
-          [sessionId, text, JSON.stringify(translations)]
-        );
-      } catch (e) {
-        console.log('DB not available');
-      }
-    } else {
-      // Create session if it doesn't exist
-      activeSessions.set(sessionId, {
-        messages: [message],
-        createdAt: Date.now(),
-      });
-    }
-
-    // SSE: 새 메시지 이벤트 발생 (실시간 푸시)
-    broadcastEmitter.emit(`session:${sessionId}`, message);
-
-    return NextResponse.json({ success: true, translations });
+    // 즉시 응답 반환 (번역은 백그라운드에서 진행)
+    return NextResponse.json({ success: true, pending: true });
   } catch (error) {
     console.error('Broadcast API error:', error);
     return NextResponse.json(
@@ -167,25 +143,125 @@ async function translateToLanguage(text: string, targetLang: string): Promise<st
   return text; // 실패 시 원문 반환
 }
 
-// 모든 언어로 병렬 번역
-async function translateToMultipleLanguages(text: string): Promise<Record<string, string>> {
-  console.log('=== Starting parallel translation for:', text);
-  const startTime = Date.now();
+// Google Cloud Translation으로 빠른 번역 (캐시 확인 포함)
+async function translateFast(text: string, targetLang: string): Promise<string> {
+  // 1. 캐시 확인
+  const cacheKey = `${text}:${targetLang}`;
+  const cached = translationCache.get(cacheKey);
+  if (cached) {
+    console.log(`Cache hit for ${targetLang}`);
+    return cached;
+  }
 
+  // 2. Google Cloud Translation API 호출
   try {
-    // 3개 언어를 병렬로 동시 번역
-    const [mn, ru, vi] = await Promise.all([
-      translateToLanguage(text, 'mn'),
-      translateToLanguage(text, 'ru'),
-      translateToLanguage(text, 'vi'),
-    ]);
+    if (!GOOGLE_PROJECT_ID) {
+      console.log('Google Cloud Project ID not set, falling back to Gemini');
+      return text; // 설정 안됨 → 원문 반환
+    }
 
-    const elapsed = Date.now() - startTime;
-    console.log(`=== Parallel translation completed in ${elapsed}ms ===`);
+    const [response] = await googleTranslate.translateText({
+      parent: `projects/${GOOGLE_PROJECT_ID}/locations/global`,
+      contents: [text],
+      sourceLanguageCode: 'ko',
+      targetLanguageCode: langCodeMap[targetLang],
+    });
 
-    return { ko: text, mn, ru, vi };
+    const translated = response.translations?.[0]?.translatedText || text;
+    return translated;
   } catch (error) {
-    console.error('Parallel translation error:', error);
-    return { ko: text, mn: text, ru: text, vi: text };
+    console.error(`Google Translation failed for ${targetLang}:`, error);
+    return text; // 실패 시 원문 반환
   }
 }
+
+// 다단계 번역: Phase 1 (빠른 Google) → Phase 2 (고품질 Gemini)
+async function translateWithTwoPhases(text: string, sessionId: string): Promise<void> {
+  const languages = ['mn', 'ru', 'vi'];
+  const messageId = Date.now();
+
+  console.log('=== Starting two-phase translation for:', text);
+
+  // Phase 1: 빠른 초벌 번역 (Google Cloud Translation)
+  const phase1Start = Date.now();
+  try {
+    const fastResults = await Promise.all(
+      languages.map(lang => translateFast(text, lang))
+    );
+
+    const provisionalMessage = {
+      original: text,
+      translations: { ko: text, mn: fastResults[0], ru: fastResults[1], vi: fastResults[2] },
+      timestamp: messageId,
+      provisional: true,
+    };
+
+    // 세션에 저장
+    const session = activeSessions.get(sessionId);
+    if (session) {
+      session.messages.push(provisionalMessage);
+      if (session.messages.length > 100) {
+        session.messages = session.messages.slice(-100);
+      }
+    } else {
+      activeSessions.set(sessionId, {
+        messages: [provisionalMessage],
+        createdAt: Date.now(),
+      });
+    }
+
+    // SSE로 초벌 번역 즉시 전송
+    broadcastEmitter.emit(`session:${sessionId}`, provisionalMessage);
+    console.log(`Phase 1 (Google) completed in ${Date.now() - phase1Start}ms`);
+  } catch (error) {
+    console.error('Phase 1 translation failed:', error);
+  }
+
+  // Phase 2: 고품질 번역 (Gemini) - 백그라운드
+  const phase2Start = Date.now();
+  try {
+    const qualityResults = await Promise.all(
+      languages.map(lang => translateToLanguage(text, lang))
+    );
+
+    const finalMessage = {
+      original: text,
+      translations: { ko: text, mn: qualityResults[0], ru: qualityResults[1], vi: qualityResults[2] },
+      timestamp: messageId, // 동일한 타임스탬프로 업데이트
+      provisional: false,
+    };
+
+    // 세션 메시지 업데이트 (기존 provisional 교체)
+    const session = activeSessions.get(sessionId);
+    if (session) {
+      const msgIndex = session.messages.findIndex(m => m.timestamp === messageId);
+      if (msgIndex !== -1) {
+        session.messages[msgIndex] = finalMessage;
+      }
+    }
+
+    // 캐시에 고품질 결과 저장
+    languages.forEach((lang, i) => {
+      translationCache.set(`${text}:${lang}`, qualityResults[i]);
+    });
+
+    // SSE로 최종 번역 전송
+    broadcastEmitter.emit(`session:${sessionId}`, finalMessage);
+    console.log(`Phase 2 (Gemini) completed in ${Date.now() - phase2Start}ms`);
+
+    // DB 저장
+    try {
+      await query(
+        `INSERT INTO broadcast_captions (session_id, original_text, translations)
+         SELECT id, $2, $3 FROM broadcast_sessions WHERE session_code = $1`,
+        [sessionId, text, JSON.stringify(finalMessage.translations)]
+      );
+    } catch (e) {
+      console.log('DB not available');
+    }
+  } catch (error) {
+    console.error('Phase 2 translation failed:', error);
+  }
+}
+
+// Gemini로 단일 언어 고품질 번역

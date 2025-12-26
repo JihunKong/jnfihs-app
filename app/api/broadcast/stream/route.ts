@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
           original: message.original,
           translated: message.translations[locale] || message.original,
           timestamp: message.timestamp,
+          provisional: message.provisional || false, // 초벌 번역 여부
         };
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       };
