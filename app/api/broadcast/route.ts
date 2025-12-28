@@ -18,7 +18,7 @@ const langCodeMap: Record<string, string> = {
 // POST: Teacher broadcasts text
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, text, action } = await req.json();
+    const { sessionId, text, action, interim = false } = await req.json();
 
     // Create new session
     if (action === 'create') {
@@ -64,7 +64,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 다단계 번역 실행 (비동기로 백그라운드 처리)
+    // 중간 전사 처리 (interim) - 빠른 Google 번역 후 즉시 전송
+    if (interim) {
+      translateInterim(text, sessionId).catch(console.error);
+      return NextResponse.json({ success: true });
+    }
+
+    // 최종 전사: 다단계 번역 실행 (비동기로 백그라운드 처리)
     translateWithTwoPhases(text, sessionId).catch(console.error);
 
     // 즉시 응답 반환 (번역은 백그라운드에서 진행)
@@ -272,6 +278,31 @@ async function translateWithTwoPhases(text: string, sessionId: string): Promise<
     }
   } catch (error) {
     console.error('Phase 2 translation failed:', error);
+  }
+}
+
+// 중간 전사 처리: 빠른 Google 번역 후 SSE 즉시 전송
+async function translateInterim(text: string, sessionId: string): Promise<void> {
+  const languages = ['mn', 'ru', 'vi'];
+
+  try {
+    // 빠른 Google 번역 (병렬)
+    const fastResults = await Promise.all(
+      languages.map(lang => translateFast(text, lang))
+    );
+
+    const interimMessage = {
+      original: text,
+      translations: { ko: text, mn: fastResults[0], ru: fastResults[1], vi: fastResults[2] },
+      timestamp: Date.now(),
+      interim: true, // 중간 전사 플래그
+      provisional: false,
+    };
+
+    // SSE로 즉시 전송 (세션에 저장하지 않음 - 임시 데이터)
+    broadcastEmitter.emit(`session:${sessionId}`, interimMessage);
+  } catch (error) {
+    console.error('Interim translation failed:', error);
   }
 }
 

@@ -27,4 +27,5 @@ export type BroadcastMessage = {
   translations: Record<string, string>;
   timestamp: number;
   provisional?: boolean; // 초벌 번역 여부
+  interim?: boolean; // 중간 전사 여부 (말하는 중)
 };

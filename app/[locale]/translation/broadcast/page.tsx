@@ -7,6 +7,8 @@ import { Header } from '@/components/layout/Header';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 
+const INTERIM_DEBOUNCE_MS = 100; // 100ms debounce for interim results
+
 export default function BroadcastPage() {
   const t = useTranslations('translation.broadcast');
   const [isListening, setIsListening] = useState(false);
@@ -15,6 +17,8 @@ export default function BroadcastPage() {
   const [copied, setCopied] = useState(false);
   const recognitionRef = useRef<any>(null);
   const lastSentRef = useRef('');
+  const interimTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastInterimRef = useRef(''); // 마지막으로 전송한 interim 결과
 
   const createSession = async () => {
     try {
@@ -69,8 +73,37 @@ export default function BroadcastPage() {
 
       setTranscript(interimTranscript || finalTranscript);
 
-      // Send final transcript to server (prevent duplicates)
+      // 중간 결과 전송 (debounce 적용)
+      if (interimTranscript && interimTranscript !== lastInterimRef.current) {
+        // 기존 타이머 취소
+        if (interimTimeoutRef.current) {
+          clearTimeout(interimTimeoutRef.current);
+        }
+
+        // 새 타이머 설정 (100ms 후 전송)
+        interimTimeoutRef.current = setTimeout(() => {
+          lastInterimRef.current = interimTranscript;
+          fetch('/api/broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId,
+              text: interimTranscript,
+              interim: true,
+            }),
+          }).catch(console.error);
+        }, INTERIM_DEBOUNCE_MS);
+      }
+
+      // 최종 결과 전송 (중복 방지)
       if (finalTranscript && finalTranscript !== lastSentRef.current) {
+        // 중간 결과 타이머 취소
+        if (interimTimeoutRef.current) {
+          clearTimeout(interimTimeoutRef.current);
+          interimTimeoutRef.current = null;
+        }
+        lastInterimRef.current = ''; // 중간 결과 초기화
+
         lastSentRef.current = finalTranscript;
         await fetch('/api/broadcast', {
           method: 'POST',
@@ -78,6 +111,7 @@ export default function BroadcastPage() {
           body: JSON.stringify({
             sessionId,
             text: finalTranscript,
+            interim: false,
           }),
         });
       }

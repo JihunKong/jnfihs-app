@@ -17,6 +17,11 @@ type Caption = {
   provisional?: boolean; // 초벌 번역 여부
 };
 
+type InterimCaption = {
+  original: string;
+  translated: string;
+};
+
 export default function ListenPage() {
   const { locale } = useParams();
   const t = useTranslations('translation');
@@ -25,6 +30,7 @@ export default function ListenPage() {
   const [sessionCode, setSessionCode] = useState('');
   const [connected, setConnected] = useState(false);
   const [captions, setCaptions] = useState<Caption[]>([]);
+  const [currentInterim, setCurrentInterim] = useState<InterimCaption | null>(null); // 현재 중간 전사
   const [notes, setNotes] = useState('');
   const [saved, setSaved] = useState(false);
   const lastTimestampRef = useRef(0);
@@ -65,6 +71,18 @@ export default function ListenPage() {
         const data = JSON.parse(event.data);
 
         if (data.type === 'message') {
+          // 중간 전사 처리 (interim)
+          if (data.interim) {
+            setCurrentInterim({
+              original: data.original,
+              translated: data.translated,
+            });
+            return;
+          }
+
+          // 최종 결과: 중간 전사 클리어
+          setCurrentInterim(null);
+
           const caption: Caption = {
             original: data.original,
             translated: data.translated,
@@ -186,7 +204,7 @@ export default function ListenPage() {
               </div>
 
               <div className="flex-1 glass-card overflow-y-auto scrollbar-hide">
-                {captions.length === 0 ? (
+                {captions.length === 0 && !currentInterim ? (
                   <p className="text-center text-oat-400 py-8">{t('waitingTeacher')}</p>
                 ) : (
                   <div className="space-y-4">
@@ -210,6 +228,18 @@ export default function ListenPage() {
                         </p>
                       </div>
                     ))}
+                    {/* 중간 전사 표시 (타이핑 효과) */}
+                    {currentInterim && (
+                      <div className="caption-typing opacity-60 border-l-2 border-oat-400 pl-3">
+                        <p className="text-xl text-oat-700 font-medium mb-1 italic">
+                          {currentInterim.original}
+                          <span className="inline-block w-0.5 h-5 bg-oat-500 ml-1 animate-pulse" />
+                        </p>
+                        <p className="text-sm text-oat-400 italic">
+                          {currentInterim.translated}
+                        </p>
+                      </div>
+                    )}
                     <div ref={captionsEndRef} />
                   </div>
                 )}
@@ -263,7 +293,7 @@ export default function ListenPage() {
 
         {/* Captions */}
         <GlassCard className="min-h-[200px] max-h-[300px] overflow-y-auto scrollbar-hide">
-          {captions.length === 0 ? (
+          {captions.length === 0 && !currentInterim ? (
             <p className="text-center text-oat-400 py-8">{t('waitingTeacher')}</p>
           ) : (
             <div className="space-y-4">
@@ -287,6 +317,18 @@ export default function ListenPage() {
                   </p>
                 </div>
               ))}
+              {/* 중간 전사 표시 (타이핑 효과) */}
+              {currentInterim && (
+                <div className="caption-typing opacity-60 border-l-2 border-oat-400 pl-3">
+                  <p className="text-lg text-oat-700 font-medium mb-1 italic">
+                    {currentInterim.original}
+                    <span className="inline-block w-0.5 h-4 bg-oat-500 ml-1 animate-pulse" />
+                  </p>
+                  <p className="text-sm text-oat-400 italic">
+                    {currentInterim.translated}
+                  </p>
+                </div>
+              )}
               <div ref={captionsEndRef} />
             </div>
           )}
