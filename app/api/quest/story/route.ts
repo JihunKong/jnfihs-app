@@ -3,6 +3,47 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
+// Generate scene image using Gemini 2.5 Flash
+async function generateSceneImage(storyText: string): Promise<string | null> {
+  try {
+    const imagePrompt = `Create a fantasy scene illustration for a Korean language learning game.
+
+Scene: ${storyText}
+Setting: Fantasy world with castles, dragons, forests, wizards, magical creatures
+Style: Colorful, friendly, anime-inspired, suitable for language learners, vibrant colors
+Mood: Adventurous, magical, inviting
+
+IMPORTANT:
+- Do NOT include any text, letters, numbers, or written language in the image
+- Create a visually appealing scene that matches the story
+- Keep it appropriate for educational use`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
+      contents: imagePrompt,
+      config: {
+        responseModalities: ['Text', 'Image'],
+      },
+    });
+
+    // Extract image from response
+    const candidates = (response as any).candidates;
+    if (candidates?.[0]?.content?.parts) {
+      for (const part of candidates[0].content.parts) {
+        if (part.inlineData) {
+          const imageData = part.inlineData;
+          return `data:${imageData.mimeType};base64,${imageData.data}`;
+        }
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Image generation error:', error);
+    return null;
+  }
+}
+
 // Level-specific vocabulary and sentence patterns
 const levelConfig = {
   1: {
@@ -126,6 +167,16 @@ JSON만 출력하고 다른 텍스트는 포함하지 마세요.`;
         ...c,
         correct: i === 0
       }));
+    }
+
+    // Generate scene image
+    console.log('Generating scene image...');
+    const imageUrl = await generateSceneImage(scene.story);
+    if (imageUrl) {
+      scene.imageUrl = imageUrl;
+      console.log('Image generated successfully');
+    } else {
+      console.log('Image generation skipped or failed');
     }
 
     return NextResponse.json({ scene });

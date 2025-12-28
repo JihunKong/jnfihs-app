@@ -22,6 +22,7 @@ import {
 import Link from 'next/link';
 
 type GameState = 'menu' | 'loading' | 'playing' | 'feedback' | 'result' | 'levelup';
+type LoadingStep = 'story' | 'image' | 'preparing';
 
 interface Choice {
   korean: string;
@@ -50,6 +51,7 @@ interface StoryScene {
   hint: string;
   vocabulary: VocabWord[];
   xp_reward: number;
+  imageUrl?: string;
 }
 
 // Level thresholds and names
@@ -105,6 +107,10 @@ export default function QuestPage() {
   const [showHint, setShowHint] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Loading progress state
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingStep, setLoadingStep] = useState<LoadingStep>('story');
+
   const ROUNDS_PER_SESSION = 5;
 
   // Load progress from localStorage
@@ -118,6 +124,39 @@ export default function QuestPage() {
       setStoryHistory(progress.history || []);
     }
   }, []);
+
+  // Loading progress simulation
+  useEffect(() => {
+    if (gameState !== 'loading') {
+      return;
+    }
+
+    setLoadingProgress(0);
+    setLoadingStep('story');
+
+    const interval = setInterval(() => {
+      setLoadingProgress(prev => {
+        // Story generation phase: 0-30%
+        if (prev < 30) {
+          setLoadingStep('story');
+          return prev + 1.5;
+        }
+        // Image generation phase: 30-70%
+        if (prev < 70) {
+          setLoadingStep('image');
+          return prev + 0.8;
+        }
+        // Preparing phase: 70-95%
+        if (prev < 95) {
+          setLoadingStep('preparing');
+          return prev + 0.3;
+        }
+        return prev;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [gameState]);
 
   // Save progress
   const saveProgress = useCallback((newXp: number, newStreak: number, newHistory: string[]) => {
@@ -352,11 +391,57 @@ export default function QuestPage() {
           </div>
         )}
 
-        {/* Loading State */}
+        {/* Loading State with Progress Bar */}
         {gameState === 'loading' && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-500 rounded-full animate-spin" />
-            <p className="mt-4 text-purple-600">{t('loading')}</p>
+          <div className="bg-white/90 backdrop-blur rounded-2xl p-8 shadow-lg border border-purple-200">
+            {/* Castle Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center animate-pulse">
+                <MapPin className="w-10 h-10 text-white" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-xl font-bold text-purple-800 text-center mb-6">
+              {t('preparingAdventure')}
+            </h2>
+
+            {/* Progress Bar */}
+            <div className="mb-4">
+              <div className="h-4 bg-purple-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-400 via-indigo-500 to-purple-600 rounded-full transition-all duration-300 relative"
+                  style={{ width: `${Math.min(loadingProgress, 100)}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/30 animate-pulse" />
+                </div>
+              </div>
+              <p className="text-right text-sm text-purple-600 mt-1 font-bold">
+                {Math.round(loadingProgress)}%
+              </p>
+            </div>
+
+            {/* Loading Step */}
+            <div className="flex items-center justify-center gap-2 text-purple-600">
+              {loadingStep === 'story' && (
+                <>
+                  <Scroll className="w-5 h-5 animate-bounce" />
+                  <span>{t('loadingStory')}</span>
+                </>
+              )}
+              {loadingStep === 'image' && (
+                <>
+                  <Sparkles className="w-5 h-5 animate-spin" />
+                  <span>{t('loadingImage')}</span>
+                </>
+              )}
+              {loadingStep === 'preparing' && (
+                <>
+                  <Sword className="w-5 h-5 animate-pulse" />
+                  <span>{t('loadingPreparing')}</span>
+                </>
+              )}
+            </div>
           </div>
         )}
 
@@ -378,6 +463,17 @@ export default function QuestPage() {
                 />
               ))}
             </div>
+
+            {/* Scene Image */}
+            {currentScene.imageUrl && (
+              <div className="bg-white/90 backdrop-blur rounded-2xl p-2 shadow-lg border border-purple-200 overflow-hidden">
+                <img
+                  src={currentScene.imageUrl}
+                  alt="Scene illustration"
+                  className="w-full h-48 object-cover rounded-xl"
+                />
+              </div>
+            )}
 
             {/* Story Card */}
             <div className="bg-white/90 backdrop-blur rounded-2xl p-6 shadow-lg border border-purple-200">
