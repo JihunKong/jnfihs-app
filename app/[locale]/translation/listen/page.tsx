@@ -235,9 +235,15 @@ export default function ListenPage() {
                           {currentInterim.original}
                           <span className="inline-block w-0.5 h-5 bg-oat-500 ml-1 animate-pulse" />
                         </p>
-                        <p className="text-sm text-oat-400 italic">
-                          {currentInterim.translated}
-                        </p>
+                        {currentInterim.translated ? (
+                          <p className="text-sm text-oat-400 italic">
+                            {currentInterim.translated}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-oat-400 animate-pulse">
+                            {t('translating')}
+                          </p>
+                        )}
                       </div>
                     )}
                     <div ref={captionsEndRef} />
@@ -324,9 +330,15 @@ export default function ListenPage() {
                     {currentInterim.original}
                     <span className="inline-block w-0.5 h-4 bg-oat-500 ml-1 animate-pulse" />
                   </p>
-                  <p className="text-sm text-oat-400 italic">
-                    {currentInterim.translated}
-                  </p>
+                  {currentInterim.translated ? (
+                    <p className="text-sm text-oat-400 italic">
+                      {currentInterim.translated}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-oat-400 animate-pulse">
+                      {t('translating')}
+                    </p>
+                  )}
                 </div>
               )}
               <div ref={captionsEndRef} />

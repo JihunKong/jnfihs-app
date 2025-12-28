@@ -29,3 +29,6 @@ export type BroadcastMessage = {
   provisional?: boolean; // 초벌 번역 여부
   interim?: boolean; // 중간 전사 여부 (말하는 중)
 };
+
+// 세션별 마지막 interim 메시지 저장 (새 연결자에게 전송용)
+export const lastInterimMessages = new Map<string, BroadcastMessage>();

@@ -18,6 +18,7 @@ import {
   BookOpen,
   Bell,
   Users,
+  Scroll,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { MobileNav } from '@/components/layout/MobileNav';
@@ -100,6 +101,14 @@ export default function DashboardPage() {
       icon: GraduationCap,
       title: t('dashboard.features.koreanLearning.title'),
       description: t('dashboard.features.koreanLearning.desc'),
+      optimizedFor: 'both' as const,
+    },
+    {
+      id: 'quest',
+      href: `/${locale}/quest`,
+      icon: Scroll,
+      title: t('dashboard.features.quest.title'),
+      description: t('dashboard.features.quest.desc'),
       optimizedFor: 'both' as const,
     },
     {

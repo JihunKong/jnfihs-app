@@ -59,6 +59,10 @@
         "title": "Học tiếng Hàn",
         "desc": "Học qua trò chơi"
       },
+      "quest": {
+        "title": "Nhiệm vụ tiếng Hàn",
+        "desc": "Học tiếng Hàn qua phiêu lưu"
+      },
       "emergencyCards": {
         "title": "Thẻ khẩn cấp",
         "desc": "Thẻ cho trường hợp khẩn cấp"
@@ -101,6 +105,7 @@
     "connect": "Kết nối",
     "listening": "Đang nghe...",
     "waitingTeacher": "Đang chờ giáo viên...",
+    "translating": "Đang dịch...",
     "notes": "Ghi chú của tôi",
     "notesPlaceholder": "Ghi chú bài giảng...",
     "saveNotes": "Lưu ghi chú",
@@ -223,5 +228,29 @@
     "backToMenu": "Về menu",
     "levelUp": "Lên cấp!",
     "continue": "Tiếp tục"
+  },
+  "quest": {
+    "title": "Nhiệm vụ tiếng Hàn",
+    "level": "Cấp độ",
+    "startQuest": "Bắt đầu cuộc phiêu lưu",
+    "questDescription": "Học tiếng Hàn trong thế giới giả tưởng!",
+    "difficultyBasic": "Cơ bản",
+    "difficultySentence": "Câu",
+    "difficultyAdvanced": "Nâng cao",
+    "words": "Từ vựng",
+    "sentences": "Câu",
+    "magic": "Phép thuật",
+    "loading": "Đang tạo câu chuyện...",
+    "fillBlank": "Điền vào chỗ trống",
+    "hint": "Xem gợi ý",
+    "vocabulary": "Từ vựng hôm nay",
+    "questComplete": "Hoàn thành nhiệm vụ!",
+    "score": "Điểm số",
+    "xpEarned": "Điểm kinh nghiệm",
+    "playAgain": "Chơi lại",
+    "backToMenu": "Về menu",
+    "levelUp": "Lên cấp!",
+    "continue": "Tiếp tục",
+    "errorGenerating": "Lỗi khi tạo câu chuyện"
   }
 }

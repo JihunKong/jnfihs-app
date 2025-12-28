@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { activeSessions, broadcastEmitter, BroadcastMessage } from '@/lib/broadcast-store';
+import { activeSessions, broadcastEmitter, BroadcastMessage, lastInterimMessages } from '@/lib/broadcast-store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,17 +25,34 @@ export async function GET(req: NextRequest) {
         timestamp: Date.now(),
       };
       controller.enqueue(encoder.encode(`data: ${JSON.stringify(connected)}\n\n`));
+      console.log(`[SSE] Client connected to session:${sessionId}`);
+
+      // 마지막 interim 메시지가 있으면 즉시 전송 (새 연결자용)
+      const lastInterim = lastInterimMessages.get(sessionId);
+      if (lastInterim) {
+        const interimData = {
+          type: 'message',
+          original: lastInterim.original,
+          translated: lastInterim.translations[locale] || '', // 번역 없으면 빈 문자열
+          timestamp: lastInterim.timestamp,
+          provisional: false,
+          interim: true,
+        };
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(interimData)}\n\n`));
+        console.log(`[SSE] Sent lastInterim to new client:`, lastInterim.original.substring(0, 20));
+      }
 
       // 새 메시지 리스너
       const messageHandler = (message: BroadcastMessage) => {
         const data = {
           type: 'message',
           original: message.original,
-          translated: message.translations[locale] || message.original,
+          translated: message.translations[locale] || '', // 번역 없으면 빈 문자열
           timestamp: message.timestamp,
           provisional: message.provisional || false, // 초벌 번역 여부
           interim: message.interim || false, // 중간 전사 여부
         };
+        console.log(`[SSE] Sending to client:`, message.interim ? 'INTERIM' : 'FINAL', message.original.substring(0, 20));
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       };
 

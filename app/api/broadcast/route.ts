@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { activeSessions, broadcastEmitter, translationCache } from '@/lib/broadcast-store';
+import { activeSessions, broadcastEmitter, translationCache, lastInterimMessages } from '@/lib/broadcast-store';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
@@ -64,9 +64,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 중간 전사 처리 (interim) - 빠른 Google 번역 후 즉시 전송
+    // 중간 전사 처리 (interim) - 번역 없이 원문 즉시 전송 (실시간성 우선)
     if (interim) {
-      translateInterim(text, sessionId).catch(console.error);
+      emitInterimImmediately(text, sessionId);
       return NextResponse.json({ success: true });
     }
 
@@ -227,6 +227,10 @@ async function translateWithTwoPhases(text: string, sessionId: string): Promise<
       });
     }
 
+    // 중간 전사 클리어 (최종 결과 도착)
+    lastInterimMessages.delete(sessionId);
+    console.log(`[FINAL] Cleared interim for session:${sessionId}`);
+
     // SSE로 초벌 번역 즉시 전송
     broadcastEmitter.emit(`session:${sessionId}`, provisionalMessage);
     console.log(`Phase 1 (Google) completed in ${Date.now() - phase1Start}ms`);
@@ -281,29 +285,23 @@ async function translateWithTwoPhases(text: string, sessionId: string): Promise<
   }
 }
 
-// 중간 전사 처리: 빠른 Google 번역 후 SSE 즉시 전송
-async function translateInterim(text: string, sessionId: string): Promise<void> {
-  const languages = ['mn', 'ru', 'vi'];
+// 중간 전사 처리: 번역 없이 원문 즉시 전송 (실시간성 우선)
+function emitInterimImmediately(text: string, sessionId: string): void {
+  // 번역 없이 원문만 즉시 전송 (~0ms 지연)
+  const interimMessage = {
+    original: text,
+    translations: {}, // 빈 객체 - 번역 없음 명시
+    timestamp: Date.now(),
+    interim: true,
+    provisional: false,
+  };
 
-  try {
-    // 빠른 Google 번역 (병렬)
-    const fastResults = await Promise.all(
-      languages.map(lang => translateFast(text, lang))
-    );
+  // lastInterimMessages에 저장 (새 연결자용)
+  lastInterimMessages.set(sessionId, interimMessage);
 
-    const interimMessage = {
-      original: text,
-      translations: { ko: text, mn: fastResults[0], ru: fastResults[1], vi: fastResults[2] },
-      timestamp: Date.now(),
-      interim: true, // 중간 전사 플래그
-      provisional: false,
-    };
-
-    // SSE로 즉시 전송 (세션에 저장하지 않음 - 임시 데이터)
-    broadcastEmitter.emit(`session:${sessionId}`, interimMessage);
-  } catch (error) {
-    console.error('Interim translation failed:', error);
-  }
+  // SSE로 즉시 전송
+  console.log(`[INTERIM] Immediate emit for session:${sessionId}`, text.substring(0, 30));
+  broadcastEmitter.emit(`session:${sessionId}`, interimMessage);
 }
 
 // Gemini로 단일 언어 고품질 번역
