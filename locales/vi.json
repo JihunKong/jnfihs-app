@@ -255,6 +255,27 @@
     "backToMenu": "Về menu",
     "levelUp": "Lên cấp!",
     "continue": "Tiếp tục",
-    "errorGenerating": "Lỗi khi tạo câu chuyện"
+    "errorGenerating": "Lỗi khi tạo câu chuyện",
+    "existingAdventures": "Chọn cuộc phiêu lưu có sẵn",
+    "selectAdventure": "Chọn cuộc phiêu lưu",
+    "noSetsAvailable": "Không có cuộc phiêu lưu đã lưu",
+    "createNew": "Tạo mới",
+    "scenes": "cảnh",
+    "plays": "lượt chơi",
+    "loadingTime": "Khoảng 2-3 phút",
+    "consecutive": "liên tiếp",
+    "streakBonus": "Thưởng trả lời đúng liên tiếp!",
+    "newAdventure": "Cuộc phiêu lưu mới",
+    "generatingStory": "Đang tạo câu chuyện",
+    "generatingImages": "Đang tạo hình ảnh",
+    "scenesComplete": "cảnh hoàn thành",
+    "adventureReady": "Cuộc phiêu lưu đã sẵn sàng!",
+    "round": "vòng",
+    "progress": "tiến độ",
+    "correct": "Đúng!",
+    "wrong": "Sai",
+    "setId": "Mã cuộc phiêu lưu",
+    "avgScore": "Điểm trung bình",
+    "totalScore": "Tổng điểm"
   }
 }

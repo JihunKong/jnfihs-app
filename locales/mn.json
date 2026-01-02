@@ -255,6 +255,27 @@
     "backToMenu": "Цэс рүү буцах",
     "levelUp": "Түвшин дээшилсэн!",
     "continue": "Үргэлжлүүлэх",
-    "errorGenerating": "Түүх үүсгэхэд алдаа гарлаа"
+    "errorGenerating": "Түүх үүсгэхэд алдаа гарлаа",
+    "existingAdventures": "Өмнөх адал явдал сонгох",
+    "selectAdventure": "Адал явдал сонгох",
+    "noSetsAvailable": "Хадгалсан адал явдал байхгүй",
+    "createNew": "Шинээр үүсгэх",
+    "scenes": "үзэгдэл",
+    "plays": "тоглолт",
+    "loadingTime": "Ойролцоогоор 2-3 минут",
+    "consecutive": "дараалсан",
+    "streakBonus": "Дараалсан зөв хариултын урамшуулал!",
+    "newAdventure": "Шинэ адал явдал",
+    "generatingStory": "Түүх үүсгэж байна",
+    "generatingImages": "Зураг үүсгэж байна",
+    "scenesComplete": "үзэгдэл дууссан",
+    "adventureReady": "Адал явдал бэлэн!",
+    "round": "тойрог",
+    "progress": "явц",
+    "correct": "Зөв!",
+    "wrong": "Буруу",
+    "setId": "Адал явдлын дугаар",
+    "avgScore": "Дундаж оноо",
+    "totalScore": "Нийт оноо"
   }
 }

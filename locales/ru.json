@@ -255,6 +255,27 @@
     "backToMenu": "Вернуться в меню",
     "levelUp": "Новый уровень!",
     "continue": "Продолжить",
-    "errorGenerating": "Ошибка при создании истории"
+    "errorGenerating": "Ошибка при создании истории",
+    "existingAdventures": "Выбрать существующее приключение",
+    "selectAdventure": "Выбрать приключение",
+    "noSetsAvailable": "Нет сохранённых приключений",
+    "createNew": "Создать новое",
+    "scenes": "сцен",
+    "plays": "игр",
+    "loadingTime": "Примерно 2-3 минуты",
+    "consecutive": "подряд",
+    "streakBonus": "Бонус за серию правильных ответов!",
+    "newAdventure": "Новое приключение",
+    "generatingStory": "Создание истории",
+    "generatingImages": "Генерация изображений",
+    "scenesComplete": "сцен готово",
+    "adventureReady": "Приключение готово!",
+    "round": "раунд",
+    "progress": "прогресс",
+    "correct": "Правильно!",
+    "wrong": "Неправильно",
+    "setId": "Номер приключения",
+    "avgScore": "Средний балл",
+    "totalScore": "Общий счёт"
   }
 }

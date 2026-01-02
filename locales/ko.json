@@ -255,6 +255,27 @@
     "backToMenu": "메뉴로 돌아가기",
     "levelUp": "레벨 업!",
     "continue": "계속하기",
-    "errorGenerating": "스토리 생성 중 오류가 발생했습니다"
+    "errorGenerating": "스토리 생성 중 오류가 발생했습니다",
+    "existingAdventures": "기존 모험 선택",
+    "selectAdventure": "모험 선택",
+    "noSetsAvailable": "저장된 모험이 없습니다",
+    "createNew": "새로 만들기",
+    "scenes": "장면",
+    "plays": "플레이",
+    "loadingTime": "약 2-3분 소요",
+    "consecutive": "연속",
+    "streakBonus": "연속 정답 보너스!",
+    "newAdventure": "새 모험",
+    "generatingStory": "스토리 생성 중",
+    "generatingImages": "이미지 생성 중",
+    "scenesComplete": "장면 완료",
+    "adventureReady": "모험 준비 완료!",
+    "round": "라운드",
+    "progress": "진행",
+    "correct": "정답!",
+    "wrong": "오답",
+    "setId": "모험 번호",
+    "avgScore": "평균 점수",
+    "totalScore": "총점"
   }
 }

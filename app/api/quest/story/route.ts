@@ -1,14 +1,22 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  StoryScene,
+  StorySet,
+  generateSetId,
+  saveSet,
+  getSet,
+  getRandomSet,
+} from '@/lib/quest-storage';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
-// Generate scene image using Gemini 2.5 Flash
-async function generateSceneImage(storyText: string): Promise<string | null> {
+// Generate scene image using Gemini 2.0 Flash
+async function generateSceneImage(storyText: string, sceneNumber: number): Promise<string | null> {
   try {
     const imagePrompt = `Create a fantasy scene illustration for a Korean language learning game.
 
-Scene: ${storyText}
+Scene ${sceneNumber}: ${storyText}
 Setting: Fantasy world with castles, dragons, forests, wizards, magical creatures
 Style: Colorful, friendly, anime-inspired, suitable for language learners, vibrant colors
 Mood: Adventurous, magical, inviting
@@ -39,7 +47,7 @@ IMPORTANT:
 
     return null;
   } catch (error) {
-    console.error('Image generation error:', error);
+    console.error(`Image generation error for scene ${sceneNumber}:`, error);
     return null;
   }
 }
@@ -77,13 +85,32 @@ const levelConfig = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { level, previousStory, playerChoice, locale } = await req.json();
+    const body = await req.json();
+    const { level, locale, setId, generateNew = true, count = 10 } = body;
 
     const gameLevel = Math.min(Math.max(level || 1, 1), 3) as 1 | 2 | 3;
+
+    // If setId is provided, try to load existing set
+    if (setId) {
+      const existingSet = await getSet(setId);
+      if (existingSet) {
+        return NextResponse.json({ storySet: existingSet });
+      }
+    }
+
+    // If not generating new, try to get a random existing set
+    if (!generateNew) {
+      const randomSet = await getRandomSet(gameLevel);
+      if (randomSet) {
+        return NextResponse.json({ storySet: randomSet });
+      }
+    }
+
+    // Generate new story set with 10 connected scenes
     const config = levelConfig[gameLevel];
 
     const prompt = `당신은 한국어 학습용 텍스트 어드벤처 게임 마스터입니다.
-판타지 세계를 배경으로 한국어 학습을 위한 인터랙티브 스토리를 생성하세요.
+연결된 ${count}개의 장면으로 구성된 완전한 모험 스토리를 생성하세요.
 
 ## 학생 레벨: ${gameLevel} (${config.description})
 
@@ -93,41 +120,42 @@ ${config.examples.map(e => `- ${e}`).join('\n')}
 ## 문장 패턴:
 ${config.sentencePattern}
 
-## 이전 이야기:
-${previousStory || '게임 시작 - 용사가 모험을 시작합니다.'}
-
-## 플레이어의 이전 선택:
-${playerChoice || '없음 (첫 번째 장면)'}
-
 ## 규칙:
 1. 판타지 세계 배경 (마법사, 용, 성, 숲, 던전 등)
-2. 학생 수준에 정확히 맞는 한국어 사용 (레벨 ${gameLevel})
-3. 빈칸 문장에서 정답 1개 + 그럴듯한 오답 2개 생성
-4. 힌트는 문법이나 의미 설명
-5. 어휘는 장면에 나온 중요 단어 2-3개
+2. ${count}개의 장면이 하나의 연결된 스토리를 형성
+3. 각 장면은 이전 장면과 자연스럽게 연결
+4. 학생 수준에 정확히 맞는 한국어 사용 (레벨 ${gameLevel})
+5. 각 장면에서 빈칸 문장의 정답 1개 + 그럴듯한 오답 2개
+6. 모험의 시작부터 클라이맥스, 결말까지 구성
 
-## 출력 형식 (반드시 JSON만 출력):
+## 출력 형식 (반드시 JSON 배열만 출력):
 {
-  "story": "짧은 판타지 스토리 텍스트 (2-3문장, 한국어)",
-  "npc_dialogue": "NPC 대사 (한국어)",
-  "blank_sentence": "나는 (___) 으로 간다",
-  "choices": [
-    {"korean": "동쪽", "correct": true, "translation": {"mn": "зүүн", "ru": "восток", "vi": "phía đông"}},
-    {"korean": "밥", "correct": false, "translation": {"mn": "хоол", "ru": "рис", "vi": "cơm"}},
-    {"korean": "춤", "correct": false, "translation": {"mn": "бүжиг", "ru": "танец", "vi": "nhảy"}}
-  ],
-  "hint": "힌트 설명 (학생 언어로)",
-  "vocabulary": [
-    {"word": "숲", "meaning": {"mn": "ой", "ru": "лес", "vi": "rừng"}},
-    {"word": "용사", "meaning": {"mn": "баатар", "ru": "герой", "vi": "anh hùng"}}
-  ],
-  "xp_reward": 10
+  "title": "모험의 제목",
+  "scenes": [
+    {
+      "story": "장면 스토리 (2-3문장)",
+      "npc_dialogue": "NPC 대사",
+      "blank_sentence": "나는 (___) 으로 간다",
+      "choices": [
+        {"korean": "동쪽", "correct": true, "translation": {"mn": "зүүн", "ru": "восток", "vi": "phía đông"}},
+        {"korean": "밥", "correct": false, "translation": {"mn": "хоол", "ru": "рис", "vi": "cơm"}},
+        {"korean": "춤", "correct": false, "translation": {"mn": "бүжиг", "ru": "танец", "vi": "nhảy"}}
+      ],
+      "hint": "힌트 설명",
+      "vocabulary": [
+        {"word": "숲", "meaning": {"mn": "ой", "ru": "лес", "vi": "rừng"}}
+      ],
+      "xp_reward": 10
+    }
+  ]
 }
 
-JSON만 출력하고 다른 텍스트는 포함하지 마세요.`;
+JSON만 출력하고 다른 텍스트는 포함하지 마세요. ${count}개의 장면을 모두 생성하세요.`;
+
+    console.log(`Generating ${count} story scenes for level ${gameLevel}...`);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash',
       contents: prompt,
     });
 
@@ -152,41 +180,73 @@ JSON만 출력하고 다른 텍스트는 포함하지 마세요.`;
       throw new Error('No JSON found in response');
     }
 
-    const scene = JSON.parse(jsonMatch[0]);
+    const storyData = JSON.parse(jsonMatch[0]);
 
-    // Validate required fields
-    if (!scene.story || !scene.blank_sentence || !scene.choices) {
-      throw new Error('Invalid scene structure');
+    if (!storyData.scenes || !Array.isArray(storyData.scenes)) {
+      throw new Error('Invalid story structure');
     }
 
-    // Ensure exactly one correct answer
-    const correctCount = scene.choices.filter((c: any) => c.correct).length;
-    if (correctCount !== 1) {
-      // Fix if needed
-      scene.choices = scene.choices.map((c: any, i: number) => ({
-        ...c,
-        correct: i === 0
-      }));
+    // Validate and fix scenes
+    const scenes: StoryScene[] = storyData.scenes.map((scene: any, index: number) => {
+      // Ensure exactly one correct answer
+      const correctCount = scene.choices?.filter((c: any) => c.correct).length || 0;
+      if (correctCount !== 1 && scene.choices) {
+        scene.choices = scene.choices.map((c: any, i: number) => ({
+          ...c,
+          correct: i === 0
+        }));
+      }
+
+      return {
+        story: scene.story || `장면 ${index + 1}`,
+        npc_dialogue: scene.npc_dialogue || '',
+        blank_sentence: scene.blank_sentence || '나는 (___) 을 한다',
+        choices: scene.choices || [],
+        hint: scene.hint || '',
+        vocabulary: scene.vocabulary || [],
+        xp_reward: scene.xp_reward || 10,
+      };
+    });
+
+    console.log(`Generated ${scenes.length} scenes. Starting image generation...`);
+
+    // Generate images for all scenes
+    for (let i = 0; i < scenes.length; i++) {
+      console.log(`Generating image for scene ${i + 1}/${scenes.length}...`);
+      const imageUrl = await generateSceneImage(scenes[i].story, i + 1);
+      if (imageUrl) {
+        scenes[i].imageUrl = imageUrl;
+        console.log(`Image ${i + 1} generated successfully`);
+      } else {
+        console.log(`Image ${i + 1} generation failed`);
+      }
     }
 
-    // Generate scene image
-    console.log('Generating scene image...');
-    const imageUrl = await generateSceneImage(scene.story);
-    if (imageUrl) {
-      scene.imageUrl = imageUrl;
-      console.log('Image generated successfully');
-    } else {
-      console.log('Image generation skipped or failed');
-    }
+    // Create story set
+    const newSetId = generateSetId();
+    const storySet: StorySet = {
+      id: newSetId,
+      level: gameLevel,
+      title: storyData.title || `모험 ${newSetId}`,
+      scenes,
+      createdAt: new Date().toISOString(),
+      playCount: 1,
+      averageScore: 0,
+    };
 
-    return NextResponse.json({ scene });
+    // Save the story set
+    await saveSet(storySet);
+
+    console.log(`Story set ${newSetId} created with ${scenes.length} scenes`);
+
+    return NextResponse.json({ storySet });
 
   } catch (error) {
     console.error('Quest story generation error:', error);
 
-    // Return a fallback scene on error
-    const fallbackScene = {
-      story: '당신은 어두운 숲에 있습니다. 앞에 세 갈래 길이 보입니다.',
+    // Return a fallback story set on error
+    const fallbackScenes: StoryScene[] = Array.from({ length: 10 }, (_, i) => ({
+      story: `당신은 어두운 숲에 있습니다. 앞에 세 갈래 길이 보입니다. (장면 ${i + 1})`,
       npc_dialogue: '현자: "어디로 가시겠습니까?"',
       blank_sentence: '나는 (___) 으로 간다.',
       choices: [
@@ -200,8 +260,18 @@ JSON만 출력하고 다른 텍스트는 포함하지 마세요.`;
         { word: '길', meaning: { mn: 'зам', ru: 'дорога', vi: 'đường' } }
       ],
       xp_reward: 10
+    }));
+
+    const fallbackSet: StorySet = {
+      id: 'FALLBACK-001',
+      level: 1,
+      title: '기본 모험',
+      scenes: fallbackScenes,
+      createdAt: new Date().toISOString(),
+      playCount: 0,
+      averageScore: 0,
     };
 
-    return NextResponse.json({ scene: fallbackScene });
+    return NextResponse.json({ storySet: fallbackSet });
   }
 }

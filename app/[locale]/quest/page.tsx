@@ -17,11 +17,14 @@ import {
   Volume2,
   CheckCircle,
   XCircle,
-  Trophy
+  Trophy,
+  Zap,
+  RefreshCw,
+  List,
 } from 'lucide-react';
 import Link from 'next/link';
 
-type GameState = 'menu' | 'loading' | 'playing' | 'feedback' | 'result' | 'levelup';
+type GameState = 'menu' | 'loading' | 'playing' | 'feedback' | 'result' | 'levelup' | 'selectSet';
 type LoadingStep = 'story' | 'image' | 'preparing';
 
 interface Choice {
@@ -52,6 +55,26 @@ interface StoryScene {
   vocabulary: VocabWord[];
   xp_reward: number;
   imageUrl?: string;
+}
+
+interface StorySet {
+  id: string;
+  level: number;
+  title: string;
+  scenes: StoryScene[];
+  createdAt: string;
+  playCount: number;
+  averageScore: number;
+}
+
+interface SetSummary {
+  id: string;
+  level: number;
+  title: string;
+  sceneCount: number;
+  createdAt: string;
+  playCount: number;
+  averageScore: number;
 }
 
 // Level thresholds and names
@@ -95,23 +118,31 @@ export default function QuestPage() {
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [level, setLevel] = useState(1);
-  const [storyHistory, setStoryHistory] = useState<string[]>([]);
+  const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
 
   // Game state
   const [gameState, setGameState] = useState<GameState>('menu');
-  const [currentScene, setCurrentScene] = useState<StoryScene | null>(null);
+  const [storySet, setStorySet] = useState<StorySet | null>(null);
+  const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [selectedChoice, setSelectedChoice] = useState<Choice | null>(null);
-  const [roundsPlayed, setRoundsPlayed] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [previousLevel, setPreviousLevel] = useState(1);
   const [showHint, setShowHint] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // XP animation state
+  const [xpGain, setXpGain] = useState<number | null>(null);
+  const [showStreakBonus, setShowStreakBonus] = useState(false);
+
   // Loading progress state
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingStep, setLoadingStep] = useState<LoadingStep>('story');
+  const [loadingMessage, setLoadingMessage] = useState('');
 
-  const ROUNDS_PER_SESSION = 5;
+  // Existing sets for selection
+  const [availableSets, setAvailableSets] = useState<SetSummary[]>([]);
+
+  const TOTAL_SCENES = 10;
 
   // Load progress from localStorage
   useEffect(() => {
@@ -121,8 +152,17 @@ export default function QuestPage() {
       setXp(progress.xp || 0);
       setStreak(progress.streak || 0);
       setLevel(calculateLevel(progress.xp || 0));
-      setStoryHistory(progress.history || []);
     }
+  }, []);
+
+  // Save progress
+  const saveProgress = useCallback((newXp: number, newStreak: number) => {
+    const progress = {
+      xp: newXp,
+      streak: newStreak,
+      lastPlay: new Date().toISOString()
+    };
+    localStorage.setItem('questProgress', JSON.stringify(progress));
   }, []);
 
   // Loading progress simulation
@@ -136,41 +176,34 @@ export default function QuestPage() {
 
     const interval = setInterval(() => {
       setLoadingProgress(prev => {
-        // Story generation phase: 0-30%
-        if (prev < 30) {
+        // Story generation phase: 0-20%
+        if (prev < 20) {
           setLoadingStep('story');
-          return prev + 1.5;
+          setLoadingMessage(t('loadingStory'));
+          return prev + 0.5;
         }
-        // Image generation phase: 30-70%
-        if (prev < 70) {
+        // Image generation phase: 20-90%
+        if (prev < 90) {
           setLoadingStep('image');
-          return prev + 0.8;
-        }
-        // Preparing phase: 70-95%
-        if (prev < 95) {
-          setLoadingStep('preparing');
+          const imageNum = Math.floor((prev - 20) / 7) + 1;
+          setLoadingMessage(`${t('loadingImage')} (${Math.min(imageNum, 10)}/10)`);
           return prev + 0.3;
+        }
+        // Preparing phase: 90-99%
+        if (prev < 99) {
+          setLoadingStep('preparing');
+          setLoadingMessage(t('loadingPreparing'));
+          return prev + 0.1;
         }
         return prev;
       });
     }, 100);
 
     return () => clearInterval(interval);
-  }, [gameState]);
+  }, [gameState, t]);
 
-  // Save progress
-  const saveProgress = useCallback((newXp: number, newStreak: number, newHistory: string[]) => {
-    const progress = {
-      xp: newXp,
-      streak: newStreak,
-      history: newHistory.slice(-10), // Keep last 10 story events
-      lastPlay: new Date().toISOString()
-    };
-    localStorage.setItem('questProgress', JSON.stringify(progress));
-  }, []);
-
-  // Fetch a new story scene from the API
-  const fetchStoryScene = async (previousChoice?: string): Promise<StoryScene | null> => {
+  // Fetch story set from API
+  const fetchStorySet = async (existingSetId?: string): Promise<StorySet | null> => {
     try {
       setError(null);
       const response = await fetch('/api/quest/story', {
@@ -178,40 +211,81 @@ export default function QuestPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           level,
-          previousStory: storyHistory.slice(-3).join('\n'),
-          playerChoice: previousChoice || null,
-          locale
+          locale,
+          setId: existingSetId,
+          generateNew: !existingSetId,
+          count: TOTAL_SCENES
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate story');
+        throw new Error('Failed to generate story set');
       }
 
       const data = await response.json();
-      return data.scene;
+      return data.storySet;
     } catch (err) {
-      console.error('Story generation error:', err);
+      console.error('Story set generation error:', err);
       setError(t('errorGenerating'));
       return null;
     }
   };
 
-  // Start a new game session
-  const startGame = async () => {
+  // Fetch available sets for selection
+  const fetchAvailableSets = async () => {
+    try {
+      const response = await fetch(`/api/quest/sets?level=${level}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableSets(data.sets || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch available sets:', err);
+    }
+  };
+
+  // Start a new game with new story generation
+  const startNewGame = async () => {
     setGameState('loading');
-    setRoundsPlayed(0);
+    setCurrentSceneIndex(0);
     setCorrectCount(0);
     setPreviousLevel(level);
     setShowHint(false);
+    setConsecutiveCorrect(0);
 
-    const scene = await fetchStoryScene();
-    if (scene) {
-      setCurrentScene(scene);
-      setGameState('playing');
+    const newSet = await fetchStorySet();
+    if (newSet) {
+      setStorySet(newSet);
+      setLoadingProgress(100);
+      setTimeout(() => setGameState('playing'), 500);
     } else {
       setGameState('menu');
     }
+  };
+
+  // Start game with existing set
+  const startWithExistingSet = async (setId: string) => {
+    setGameState('loading');
+    setCurrentSceneIndex(0);
+    setCorrectCount(0);
+    setPreviousLevel(level);
+    setShowHint(false);
+    setConsecutiveCorrect(0);
+
+    const existingSet = await fetchStorySet(setId);
+    if (existingSet) {
+      setStorySet(existingSet);
+      setLoadingProgress(100);
+      setTimeout(() => setGameState('playing'), 500);
+    } else {
+      setGameState('menu');
+    }
+  };
+
+  // Show set selection
+  const showSetSelection = async () => {
+    await fetchAvailableSets();
+    setGameState('selectSet');
   };
 
   // Handle player choice
@@ -221,52 +295,85 @@ export default function QuestPage() {
     setSelectedChoice(choice);
     setGameState('feedback');
 
+    let earnedXp = 0;
+    let bonusEarned = false;
+
     if (choice.correct) {
       setCorrectCount(prev => prev + 1);
-    }
+      const newConsecutive = consecutiveCorrect + 1;
+      setConsecutiveCorrect(newConsecutive);
 
-    // Update story history
-    const newHistory = [...storyHistory, currentScene?.story || '', choice.korean];
-    setStoryHistory(newHistory);
+      // Base XP
+      earnedXp = 10;
+
+      // Streak bonus (3+ consecutive correct)
+      if (newConsecutive >= 3) {
+        earnedXp += 5;
+        bonusEarned = true;
+        setShowStreakBonus(true);
+        setTimeout(() => setShowStreakBonus(false), 1500);
+      }
+
+      // Update XP immediately
+      const newXp = xp + earnedXp;
+      setXp(newXp);
+      setXpGain(earnedXp);
+      setTimeout(() => setXpGain(null), 1500);
+
+      // Check level up
+      const newLevel = calculateLevel(newXp);
+      if (newLevel > level) {
+        setLevel(newLevel);
+      }
+
+      // Save progress
+      saveProgress(newXp, streak);
+    } else {
+      // Wrong answer - reset consecutive count
+      setConsecutiveCorrect(0);
+    }
 
     // Wait for feedback animation
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const newRoundsPlayed = roundsPlayed + 1;
-    setRoundsPlayed(newRoundsPlayed);
+    const nextIndex = currentSceneIndex + 1;
 
-    // Check if session is complete
-    if (newRoundsPlayed >= ROUNDS_PER_SESSION) {
-      // Calculate rewards
-      const earnedXp = correctCount * 10 + (choice.correct ? 10 : 0);
-      const newXp = xp + earnedXp;
-      const newLevel = calculateLevel(newXp);
+    // Check if game is complete
+    if (nextIndex >= (storySet?.scenes.length || TOTAL_SCENES)) {
+      // Update set statistics
+      if (storySet) {
+        try {
+          await fetch('/api/quest/sets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              setId: storySet.id,
+              correctAnswers: correctCount + (choice.correct ? 1 : 0),
+              totalQuestions: storySet.scenes.length
+            })
+          });
+        } catch (err) {
+          console.error('Failed to update set stats:', err);
+        }
+      }
+
       const newStreak = streak + 1;
-
-      setXp(newXp);
       setStreak(newStreak);
-      setLevel(newLevel);
-      saveProgress(newXp, newStreak, newHistory);
+      saveProgress(xp, newStreak);
 
       // Check for level up
-      if (newLevel > previousLevel) {
+      const currentLevel = calculateLevel(xp);
+      if (currentLevel > previousLevel) {
         setGameState('levelup');
       } else {
         setGameState('result');
       }
     } else {
-      // Continue to next scene
-      setGameState('loading');
+      // Move to next scene
+      setCurrentSceneIndex(nextIndex);
+      setSelectedChoice(null);
       setShowHint(false);
-
-      const scene = await fetchStoryScene(choice.korean);
-      if (scene) {
-        setCurrentScene(scene);
-        setSelectedChoice(null);
-        setGameState('playing');
-      } else {
-        setGameState('result');
-      }
+      setGameState('playing');
     }
   };
 
@@ -284,6 +391,9 @@ export default function QuestPage() {
   const getTranslation = (translations: { mn: string; ru: string; vi: string }) => {
     return translations[locale as keyof typeof translations] || translations.mn;
   };
+
+  // Current scene
+  const currentScene = storySet?.scenes[currentSceneIndex];
 
   // XP progress
   const xpProgress = getXpToNextLevel(xp);
@@ -320,10 +430,29 @@ export default function QuestPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6">
         {/* Progress Card */}
-        <div className="bg-white/80 backdrop-blur rounded-2xl p-4 mb-6 shadow-sm border border-purple-200">
+        <div className="bg-white/80 backdrop-blur rounded-2xl p-4 mb-6 shadow-sm border border-purple-200 relative">
+          {/* XP Gain Animation */}
+          {xpGain !== null && (
+            <div className="absolute top-2 right-2 animate-bounce">
+              <div className="bg-green-500 text-white px-2 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                <Zap className="w-4 h-4" />
+                +{xpGain} XP
+              </div>
+            </div>
+          )}
+
+          {/* Streak Bonus Animation */}
+          {showStreakBonus && (
+            <div className="absolute top-12 right-2 animate-pulse">
+              <div className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                {t('streakBonus')}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center text-white">
                 {getDifficultyIcon()}
               </div>
               <div>
@@ -345,14 +474,24 @@ export default function QuestPage() {
           <p className="text-xs text-purple-500 mt-1 text-right">
             {xpProgress.current} / {xpProgress.needed} XP
           </p>
+
+          {/* Consecutive streak indicator */}
+          {consecutiveCorrect >= 2 && gameState === 'playing' && (
+            <div className="mt-2 flex items-center justify-center gap-1">
+              <Flame className="w-4 h-4 text-orange-500" />
+              <span className="text-sm font-bold text-orange-600">
+                {consecutiveCorrect} {t('consecutive')}!
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Menu State */}
         {gameState === 'menu' && (
           <div className="space-y-4">
-            {/* Start Button */}
+            {/* New Adventure Button */}
             <button
-              onClick={startGame}
+              onClick={startNewGame}
               className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02]"
             >
               <div className="flex items-center justify-center gap-3">
@@ -361,6 +500,17 @@ export default function QuestPage() {
                   <p className="text-xl font-bold">{t('startQuest')}</p>
                   <p className="text-sm opacity-90">{t('questDescription')}</p>
                 </div>
+              </div>
+            </button>
+
+            {/* Existing Adventure Button */}
+            <button
+              onClick={showSetSelection}
+              className="w-full bg-white/80 backdrop-blur border-2 border-purple-300 text-purple-700 rounded-2xl p-4 shadow hover:bg-purple-50 transition-all"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <List className="w-5 h-5" />
+                <span className="font-semibold">{t('existingAdventures')}</span>
               </div>
             </button>
 
@@ -386,6 +536,54 @@ export default function QuestPage() {
             {error && (
               <div className="bg-red-100 border border-red-300 text-red-700 rounded-xl p-4 text-center">
                 {error}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Set Selection State */}
+        {gameState === 'selectSet' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-purple-800">{t('selectAdventure')}</h2>
+              <button
+                onClick={() => setGameState('menu')}
+                className="p-2 hover:bg-purple-100 rounded-full"
+              >
+                <ArrowLeft className="w-5 h-5 text-purple-700" />
+              </button>
+            </div>
+
+            {availableSets.length === 0 ? (
+              <div className="bg-white/80 backdrop-blur rounded-xl p-6 text-center">
+                <p className="text-purple-600">{t('noSetsAvailable')}</p>
+                <button
+                  onClick={startNewGame}
+                  className="mt-4 bg-purple-500 text-white px-4 py-2 rounded-lg font-semibold"
+                >
+                  {t('createNew')}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {availableSets.map(set => (
+                  <button
+                    key={set.id}
+                    onClick={() => startWithExistingSet(set.id)}
+                    className="w-full bg-white/80 backdrop-blur rounded-xl p-4 border border-purple-200 text-left hover:bg-purple-50 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-purple-800">{set.title}</p>
+                        <p className="text-xs text-purple-500">{set.id}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-purple-600">{set.sceneCount} {t('scenes')}</p>
+                        <p className="text-xs text-purple-400">{set.playCount} {t('plays')}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -424,39 +622,41 @@ export default function QuestPage() {
             {/* Loading Step */}
             <div className="flex items-center justify-center gap-2 text-purple-600">
               {loadingStep === 'story' && (
-                <>
-                  <Scroll className="w-5 h-5 animate-bounce" />
-                  <span>{t('loadingStory')}</span>
-                </>
+                <Scroll className="w-5 h-5 animate-bounce" />
               )}
               {loadingStep === 'image' && (
-                <>
-                  <Sparkles className="w-5 h-5 animate-spin" />
-                  <span>{t('loadingImage')}</span>
-                </>
+                <Sparkles className="w-5 h-5 animate-spin" />
               )}
               {loadingStep === 'preparing' && (
-                <>
-                  <Sword className="w-5 h-5 animate-pulse" />
-                  <span>{t('loadingPreparing')}</span>
-                </>
+                <Sword className="w-5 h-5 animate-pulse" />
               )}
+              <span>{loadingMessage || t('loading')}</span>
             </div>
+
+            <p className="text-center text-xs text-purple-400 mt-4">
+              {t('loadingTime')}
+            </p>
           </div>
         )}
 
         {/* Playing State */}
         {(gameState === 'playing' || gameState === 'feedback') && currentScene && (
           <div className="space-y-4">
+            {/* Set ID & Progress */}
+            <div className="flex items-center justify-between text-xs text-purple-500">
+              <span>{storySet?.id}</span>
+              <span>{currentSceneIndex + 1} / {storySet?.scenes.length || TOTAL_SCENES}</span>
+            </div>
+
             {/* Progress Dots */}
             <div className="flex gap-1 justify-center mb-4">
-              {Array.from({ length: ROUNDS_PER_SESSION }).map((_, i) => (
+              {Array.from({ length: storySet?.scenes.length || TOTAL_SCENES }).map((_, i) => (
                 <div
                   key={i}
                   className={`w-2 h-2 rounded-full transition-colors ${
-                    i < roundsPlayed
+                    i < currentSceneIndex
                       ? 'bg-purple-500'
-                      : i === roundsPlayed
+                      : i === currentSceneIndex
                       ? 'bg-purple-300'
                       : 'bg-purple-200'
                   }`}
@@ -564,7 +764,7 @@ export default function QuestPage() {
             )}
 
             {/* Vocabulary */}
-            {currentScene.vocabulary.length > 0 && (
+            {currentScene.vocabulary && currentScene.vocabulary.length > 0 && (
               <div className="bg-white/80 backdrop-blur rounded-xl p-4 border border-purple-200">
                 <div className="flex items-center gap-2 text-purple-600 font-semibold mb-2">
                   <BookOpen className="w-5 h-5" />
@@ -594,8 +794,11 @@ export default function QuestPage() {
               <Trophy className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-purple-800 mb-2">{t('questComplete')}</h2>
-            <p className="text-purple-600 mb-6">
-              {t('score')}: {correctCount} / {ROUNDS_PER_SESSION}
+            <p className="text-purple-600 mb-2">
+              {storySet?.title}
+            </p>
+            <p className="text-sm text-purple-500 mb-6">
+              {t('score')}: {correctCount} / {storySet?.scenes.length || TOTAL_SCENES}
             </p>
 
             <div className="bg-purple-50 rounded-xl p-4 mb-6">
@@ -605,10 +808,11 @@ export default function QuestPage() {
 
             <div className="space-y-3">
               <button
-                onClick={startGame}
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl py-3 font-bold hover:shadow-lg transition-all"
+                onClick={startNewGame}
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl py-3 font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
               >
-                {t('playAgain')}
+                <RefreshCw className="w-5 h-5" />
+                {t('newAdventure')}
               </button>
               <button
                 onClick={() => setGameState('menu')}
