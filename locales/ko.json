@@ -7,7 +7,22 @@
     "cancel": "취소",
     "save": "저장",
     "loading": "로딩 중...",
-    "error": "오류가 발생했습니다"
+    "error": "오류가 발생했습니다",
+    "viewAll": "전체 보기"
+  },
+  "auth": {
+    "signInWithGoogle": "Google로 로그인",
+    "signOut": "로그아웃",
+    "signInError": "로그인 중 오류가 발생했습니다",
+    "useSchoolAccount": "학교 Google 계정을 사용해 주세요",
+    "privacyNotice": "로그인 시 개인정보 처리방침에 동의하게 됩니다",
+    "features": {
+      "learning": "학습",
+      "multilingual": "다국어",
+      "secure": "보안"
+    },
+    "profile": "프로필",
+    "settings": "설정"
   },
   "nav": {
     "home": "홈",
@@ -17,11 +32,18 @@
     "leave": "외출 신청",
     "health": "건강 체크",
     "meals": "급식",
-    "booking": "시설 예약"
+    "booking": "시설 예약",
+    "groups": {
+      "learning": "학습",
+      "schoolLife": "학교생활",
+      "healthSafety": "건강/안전",
+      "communication": "소통"
+    }
   },
   "dashboard": {
     "greeting": "안녕하세요!",
     "todayDate": "오늘",
+    "quickAccess": "빠른 접근",
     "features": {
       "chat": {
         "title": "규정 문의",
@@ -82,6 +104,42 @@
       "parentPortal": {
         "title": "학부모 포털",
         "desc": "학부모님을 위한 정보"
+      },
+      "translationListen": {
+        "title": "수업 자막",
+        "desc": "실시간 수업 자막 보기"
+      },
+      "translationBroadcast": {
+        "title": "수업 방송",
+        "desc": "수업 내용을 방송합니다"
+      }
+    },
+    "widgets": {
+      "meals": {
+        "title": "오늘의 식단",
+        "now": "지금"
+      },
+      "announcements": {
+        "title": "오늘의 공지",
+        "urgent": "긴급",
+        "important": "중요",
+        "general": "일반",
+        "noAnnouncements": "새로운 공지가 없습니다"
+      },
+      "korean": {
+        "title": "오늘의 한국어",
+        "continue": "계속하기",
+        "streak": "연속 일수",
+        "completed": "완료한 모험",
+        "todayWord": "오늘의 단어",
+        "startQuest": "퀘스트 시작하기"
+      },
+      "schedule": {
+        "title": "내 일정",
+        "leaveRequests": "외출/외박 신청",
+        "bookings": "시설 예약",
+        "noSchedule": "예정된 일정이 없습니다",
+        "loginRequired": "로그인 후 이용해 주세요"
       }
     }
   },
@@ -276,6 +334,14 @@
     "wrong": "오답",
     "setId": "모험 번호",
     "avgScore": "평균 점수",
-    "totalScore": "총점"
+    "totalScore": "총점",
+    "selectTheme": "테마 선택",
+    "selectedTheme": "선택한 테마",
+    "selectTopic": "주제 선택",
+    "changeTheme": "테마 바꾸기",
+    "topicProgress": "주제 진행도",
+    "beginner": "초급",
+    "intermediate": "중급",
+    "advanced": "고급"
   }
 }

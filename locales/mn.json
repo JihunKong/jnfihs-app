@@ -7,7 +7,22 @@
     "cancel": "Цуцлах",
     "save": "Хадгалах",
     "loading": "Ачааллаж байна...",
-    "error": "Алдаа гарлаа"
+    "error": "Алдаа гарлаа",
+    "viewAll": "Бүгдийг харах"
+  },
+  "auth": {
+    "signInWithGoogle": "Google-ээр нэвтрэх",
+    "signOut": "Гарах",
+    "signInError": "Нэвтрэхэд алдаа гарлаа",
+    "useSchoolAccount": "Сургуулийн Google бүртгэлээ ашиглана уу",
+    "privacyNotice": "Нэвтрэхдээ нууцлалын бодлогыг зөвшөөрнө",
+    "features": {
+      "learning": "Сурах",
+      "multilingual": "Олон хэл",
+      "secure": "Аюулгүй"
+    },
+    "profile": "Профайл",
+    "settings": "Тохиргоо"
   },
   "nav": {
     "home": "Нүүр",
@@ -17,11 +32,18 @@
     "leave": "Гадуур явах",
     "health": "Эрүүл мэнд",
     "meals": "Хоол",
-    "booking": "Захиалга"
+    "booking": "Захиалга",
+    "groups": {
+      "learning": "Суралцах",
+      "schoolLife": "Сургуулийн амьдрал",
+      "healthSafety": "Эрүүл мэнд/Аюулгүй",
+      "communication": "Харилцаа"
+    }
   },
   "dashboard": {
     "greeting": "Сайн байна уу!",
     "todayDate": "Өнөөдөр",
+    "quickAccess": "Түргэн хандалт",
     "features": {
       "chat": {
         "title": "Дүрэм асуух",
@@ -82,6 +104,42 @@
       "parentPortal": {
         "title": "Эцэг эхийн портал",
         "desc": "Эцэг эхэд зориулсан мэдээлэл"
+      },
+      "translationListen": {
+        "title": "Хичээлийн хадмал",
+        "desc": "Бодит цагийн хичээлийн хадмал"
+      },
+      "translationBroadcast": {
+        "title": "Хичээл дамжуулах",
+        "desc": "Хичээлийн агуулгыг дамжуулах"
+      }
+    },
+    "widgets": {
+      "meals": {
+        "title": "Өнөөдрийн хоол",
+        "now": "Одоо"
+      },
+      "announcements": {
+        "title": "Өнөөдрийн зарлал",
+        "urgent": "Яаралтай",
+        "important": "Чухал",
+        "general": "Ерөнхий",
+        "noAnnouncements": "Шинэ зарлал байхгүй"
+      },
+      "korean": {
+        "title": "Өнөөдрийн солонгос хэл",
+        "continue": "Үргэлжлүүлэх",
+        "streak": "Дараалсан өдөр",
+        "completed": "Дууссан квест",
+        "todayWord": "Өнөөдрийн үг",
+        "startQuest": "Квест эхлүүлэх"
+      },
+      "schedule": {
+        "title": "Миний хуваарь",
+        "leaveRequests": "Гадуур явах хүсэлт",
+        "bookings": "Захиалга",
+        "noSchedule": "Төлөвлөсөн хуваарь байхгүй",
+        "loginRequired": "Нэвтэрнэ үү"
       }
     }
   },
@@ -276,6 +334,14 @@
     "wrong": "Буруу",
     "setId": "Адал явдлын дугаар",
     "avgScore": "Дундаж оноо",
-    "totalScore": "Нийт оноо"
+    "totalScore": "Нийт оноо",
+    "selectTheme": "Сэдэв сонгох",
+    "selectedTheme": "Сонгосон сэдэв",
+    "selectTopic": "Үгийн сан сонгох",
+    "changeTheme": "Сэдэв солих",
+    "topicProgress": "Үгийн сангийн явц",
+    "beginner": "Анхан шат",
+    "intermediate": "Дунд шат",
+    "advanced": "Гүнзгий шат"
   }
 }

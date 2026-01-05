@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import SessionProvider from '@/components/providers/SessionProvider';
 import '../globals.css';
 
 export function generateStaticParams() {
@@ -33,9 +34,11 @@ export default async function LocaleLayout({
         <title>JNFIHS - 전남미래국제고</title>
       </head>
       <body className="min-h-screen bg-oat-50">
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+        <SessionProvider>
+          <NextIntlClientProvider messages={messages}>
+            {children}
+          </NextIntlClientProvider>
+        </SessionProvider>
       </body>
     </html>
   );

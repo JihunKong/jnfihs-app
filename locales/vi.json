@@ -7,7 +7,22 @@
     "cancel": "Hủy",
     "save": "Lưu",
     "loading": "Đang tải...",
-    "error": "Đã xảy ra lỗi"
+    "error": "Đã xảy ra lỗi",
+    "viewAll": "Xem tất cả"
+  },
+  "auth": {
+    "signInWithGoogle": "Đăng nhập bằng Google",
+    "signOut": "Đăng xuất",
+    "signInError": "Lỗi khi đăng nhập",
+    "useSchoolAccount": "Vui lòng sử dụng tài khoản Google của trường",
+    "privacyNotice": "Khi đăng nhập, bạn đồng ý với chính sách bảo mật",
+    "features": {
+      "learning": "Học tập",
+      "multilingual": "Đa ngôn ngữ",
+      "secure": "Bảo mật"
+    },
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt"
   },
   "nav": {
     "home": "Trang chủ",
@@ -17,11 +32,18 @@
     "leave": "Xin phép ra ngoài",
     "health": "Sức khỏe",
     "meals": "Thực đơn",
-    "booking": "Đặt phòng"
+    "booking": "Đặt phòng",
+    "groups": {
+      "learning": "Học tập",
+      "schoolLife": "Đời sống học đường",
+      "healthSafety": "Sức khỏe/An toàn",
+      "communication": "Liên lạc"
+    }
   },
   "dashboard": {
     "greeting": "Xin chào!",
     "todayDate": "Hôm nay",
+    "quickAccess": "Truy cập nhanh",
     "features": {
       "chat": {
         "title": "Hỏi về quy định",
@@ -82,6 +104,42 @@
       "parentPortal": {
         "title": "Cổng thông tin phụ huynh",
         "desc": "Thông tin cho phụ huynh"
+      },
+      "translationListen": {
+        "title": "Phụ đề bài giảng",
+        "desc": "Phụ đề trực tiếp"
+      },
+      "translationBroadcast": {
+        "title": "Phát sóng bài giảng",
+        "desc": "Phát nội dung bài giảng"
+      }
+    },
+    "widgets": {
+      "meals": {
+        "title": "Thực đơn hôm nay",
+        "now": "Bây giờ"
+      },
+      "announcements": {
+        "title": "Thông báo hôm nay",
+        "urgent": "Khẩn cấp",
+        "important": "Quan trọng",
+        "general": "Chung",
+        "noAnnouncements": "Không có thông báo mới"
+      },
+      "korean": {
+        "title": "Tiếng Hàn hôm nay",
+        "continue": "Tiếp tục",
+        "streak": "Ngày liên tiếp",
+        "completed": "Nhiệm vụ hoàn thành",
+        "todayWord": "Từ vựng hôm nay",
+        "startQuest": "Bắt đầu nhiệm vụ"
+      },
+      "schedule": {
+        "title": "Lịch của tôi",
+        "leaveRequests": "Đơn xin phép",
+        "bookings": "Đặt phòng",
+        "noSchedule": "Không có lịch trình",
+        "loginRequired": "Vui lòng đăng nhập"
       }
     }
   },
@@ -276,6 +334,14 @@
     "wrong": "Sai",
     "setId": "Mã cuộc phiêu lưu",
     "avgScore": "Điểm trung bình",
-    "totalScore": "Tổng điểm"
+    "totalScore": "Tổng điểm",
+    "selectTheme": "Chọn chủ đề",
+    "selectedTheme": "Chủ đề đã chọn",
+    "selectTopic": "Chọn từ vựng",
+    "changeTheme": "Đổi chủ đề",
+    "topicProgress": "Tiến độ từ vựng",
+    "beginner": "Cơ bản",
+    "intermediate": "Trung cấp",
+    "advanced": "Nâng cao"
   }
 }

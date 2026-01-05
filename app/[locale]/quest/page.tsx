@@ -21,10 +21,50 @@ import {
   Zap,
   RefreshCw,
   List,
+  Lock,
+  Castle,
+  Building2,
+  Columns,
+  Sun,
+  Cherry,
+  Rocket,
+  Users,
+  BookOpenCheck,
+  Clock,
+  Shirt,
+  ShoppingCart,
+  Bus,
+  Map,
+  Briefcase,
+  Gamepad2,
+  Smartphone,
+  Cloud,
+  Heart,
+  Stethoscope,
+  MessageCircle,
+  Quote,
 } from 'lucide-react';
 import Link from 'next/link';
+import {
+  THEMES,
+  TOPICS,
+  ThemeConfig,
+  TopicConfig,
+  getTheme,
+  getTopic,
+  getUnlockedTopics,
+  isTopicUnlocked,
+} from '@/lib/quest-config';
+import {
+  TOPIK_LEVELS,
+  TOPIK1_UNITS,
+  getUnitsForLevel,
+  getUnit,
+  LocalizedText,
+} from '@/lib/korean-curriculum';
+import { getTotalVocabularyCount } from '@/lib/korean-vocabulary';
 
-type GameState = 'menu' | 'loading' | 'playing' | 'feedback' | 'result' | 'levelup' | 'selectSet';
+type GameState = 'menu' | 'curriculum' | 'selectTheme' | 'selectTopic' | 'loading' | 'playing' | 'feedback' | 'result' | 'levelup' | 'selectSet';
 type LoadingStep = 'story' | 'image' | 'preparing';
 
 interface Choice {
@@ -60,6 +100,8 @@ interface StoryScene {
 interface StorySet {
   id: string;
   level: number;
+  theme: string;
+  topic: string;
   title: string;
   scenes: StoryScene[];
   createdAt: string;
@@ -70,6 +112,8 @@ interface StorySet {
 interface SetSummary {
   id: string;
   level: number;
+  theme: string;
+  topic: string;
   title: string;
   sceneCount: number;
   createdAt: string;
@@ -85,6 +129,41 @@ const levelThresholds = [
   { level: 4, xp: 600, name: { ko: '전설', mn: 'Домог', ru: 'Легенда', vi: 'Huyền thoại' } },
   { level: 5, xp: 1000, name: { ko: '신화', mn: 'Үлгэр', ru: 'Миф', vi: 'Thần thoại' } },
 ];
+
+// Theme icons mapping
+const themeIcons: Record<string, React.ReactNode> = {
+  medieval: <Castle className="w-8 h-8" />,
+  modern: <Building2 className="w-8 h-8" />,
+  ancient: <Columns className="w-8 h-8" />,
+  primitive: <Flame className="w-8 h-8" />,
+  western: <Sun className="w-8 h-8" />,
+  eastern: <Cherry className="w-8 h-8" />,
+  space: <Rocket className="w-8 h-8" />,
+};
+
+// Topic icons mapping
+const topicIcons: Record<string, React.ReactNode> = {
+  greetings: <MessageCircle className="w-5 h-5" />,
+  numbers: <BookOpenCheck className="w-5 h-5" />,
+  colors: <Sparkles className="w-5 h-5" />,
+  family: <Users className="w-5 h-5" />,
+  food: <Star className="w-5 h-5" />,
+  school: <BookOpen className="w-5 h-5" />,
+  time: <Clock className="w-5 h-5" />,
+  clothes: <Shirt className="w-5 h-5" />,
+  body: <Heart className="w-5 h-5" />,
+  shopping: <ShoppingCart className="w-5 h-5" />,
+  transport: <Bus className="w-5 h-5" />,
+  directions: <Map className="w-5 h-5" />,
+  jobs: <Briefcase className="w-5 h-5" />,
+  hobbies: <Gamepad2 className="w-5 h-5" />,
+  technology: <Smartphone className="w-5 h-5" />,
+  weather: <Cloud className="w-5 h-5" />,
+  emotions: <Heart className="w-5 h-5" />,
+  health: <Stethoscope className="w-5 h-5" />,
+  expressions: <MessageCircle className="w-5 h-5" />,
+  idioms: <Quote className="w-5 h-5" />,
+};
 
 function calculateLevel(xp: number): number {
   for (let i = levelThresholds.length - 1; i >= 0; i--) {
@@ -120,6 +199,10 @@ export default function QuestPage() {
   const [level, setLevel] = useState(1);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
 
+  // Theme and Topic selection
+  const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
   // Game state
   const [gameState, setGameState] = useState<GameState>('menu');
   const [storySet, setStorySet] = useState<StorySet | null>(null);
@@ -141,6 +224,10 @@ export default function QuestPage() {
 
   // Existing sets for selection
   const [availableSets, setAvailableSets] = useState<SetSummary[]>([]);
+
+  // TOPIK Curriculum state
+  const [selectedTopikLevel, setSelectedTopikLevel] = useState<number>(1);
+  const [expandedUnitId, setExpandedUnitId] = useState<string | null>(null);
 
   const TOTAL_SCENES = 10;
 
@@ -214,7 +301,9 @@ export default function QuestPage() {
           locale,
           setId: existingSetId,
           generateNew: !existingSetId,
-          count: TOTAL_SCENES
+          count: TOTAL_SCENES,
+          theme: selectedTheme || 'medieval',
+          topic: selectedTopic || 'greetings',
         })
       });
 
@@ -234,7 +323,11 @@ export default function QuestPage() {
   // Fetch available sets for selection
   const fetchAvailableSets = async () => {
     try {
-      const response = await fetch(`/api/quest/sets?level=${level}`);
+      let url = `/api/quest/sets?level=${level}`;
+      if (selectedTheme) url += `&theme=${selectedTheme}`;
+      if (selectedTopic) url += `&topic=${selectedTopic}`;
+
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setAvailableSets(data.sets || []);
@@ -244,14 +337,38 @@ export default function QuestPage() {
     }
   };
 
+  // Start theme selection
+  const startThemeSelection = () => {
+    setGameState('selectTheme');
+  };
+
+  // Handle theme selection
+  const handleThemeSelect = (themeId: string) => {
+    setSelectedTheme(themeId);
+    setGameState('selectTopic');
+  };
+
+  // Handle topic selection
+  const handleTopicSelect = (topicId: string) => {
+    if (!isTopicUnlocked(topicId, xp)) return;
+    setSelectedTopic(topicId);
+    startNewGame(topicId);
+  };
+
   // Start a new game with new story generation
-  const startNewGame = async () => {
+  const startNewGame = async (topicOverride?: string) => {
     setGameState('loading');
     setCurrentSceneIndex(0);
     setCorrectCount(0);
     setPreviousLevel(level);
     setShowHint(false);
     setConsecutiveCorrect(0);
+
+    // Temporarily set topic if override provided
+    const topicToUse = topicOverride || selectedTopic;
+    if (topicOverride) {
+      setSelectedTopic(topicOverride);
+    }
 
     const newSet = await fetchStorySet();
     if (newSet) {
@@ -296,7 +413,6 @@ export default function QuestPage() {
     setGameState('feedback');
 
     let earnedXp = 0;
-    let bonusEarned = false;
 
     if (choice.correct) {
       setCorrectCount(prev => prev + 1);
@@ -309,7 +425,6 @@ export default function QuestPage() {
       // Streak bonus (3+ consecutive correct)
       if (newConsecutive >= 3) {
         earnedXp += 5;
-        bonusEarned = true;
         setShowStreakBonus(true);
         setTimeout(() => setShowStreakBonus(false), 1500);
       }
@@ -392,6 +507,16 @@ export default function QuestPage() {
     return translations[locale as keyof typeof translations] || translations.mn;
   };
 
+  // Get localized name
+  const getLocalizedName = (name: { ko: string; mn: string; ru: string; vi: string }) => {
+    return name[locale as keyof typeof name] || name.ko;
+  };
+
+  // Get localized text for curriculum
+  const getLocalized = (text: LocalizedText) => {
+    return text[locale as keyof LocalizedText] || text.ko;
+  };
+
   // Current scene
   const currentScene = storySet?.scenes[currentSceneIndex];
 
@@ -412,14 +537,40 @@ export default function QuestPage() {
     return <Wand2 className="w-5 h-5" />;
   };
 
+  // Get current theme config
+  const currentThemeConfig = selectedTheme ? getTheme(selectedTheme) : null;
+
+  // Get gradient style based on theme
+  const getThemeGradient = (theme: ThemeConfig) => {
+    return theme.colorScheme.gradient;
+  };
+
+  // Get unlocked topics
+  const unlockedTopics = getUnlockedTopics(xp);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-indigo-100">
+    <div className={`min-h-screen ${currentThemeConfig ? currentThemeConfig.colorScheme.bgGradient : 'bg-gradient-to-b from-purple-50 to-indigo-100'}`}>
       {/* Header */}
       <header className="bg-white/70 backdrop-blur-md border-b border-purple-200 sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href={`/${locale}`} className="p-2 hover:bg-purple-100 rounded-full">
+          <button
+            onClick={() => {
+              if (gameState === 'selectTopic') {
+                setGameState('selectTheme');
+              } else if (gameState === 'selectTheme' || gameState === 'selectSet' || gameState === 'curriculum') {
+                setGameState('menu');
+              } else if (gameState === 'menu') {
+                window.location.href = `/${locale}`;
+              } else {
+                setGameState('menu');
+                setSelectedTheme(null);
+                setSelectedTopic(null);
+              }
+            }}
+            className="p-2 hover:bg-purple-100 rounded-full"
+          >
             <ArrowLeft className="w-5 h-5 text-purple-700" />
-          </Link>
+          </button>
           <h1 className="text-lg font-bold text-purple-800">{t('title')}</h1>
           <div className="flex items-center gap-2 text-purple-600">
             <Flame className="w-5 h-5 text-orange-500" />
@@ -489,9 +640,52 @@ export default function QuestPage() {
         {/* Menu State */}
         {gameState === 'menu' && (
           <div className="space-y-4">
+            {/* TOPIK Learning Section */}
+            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl p-5 shadow-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <BookOpen className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">TOPIK 한국어</h3>
+                  <p className="text-sm opacity-90">체계적인 한국어 학습</p>
+                </div>
+              </div>
+
+              {/* TOPIK Levels Preview */}
+              <div className="flex gap-2 mb-3">
+                {TOPIK_LEVELS.slice(0, 3).map((level) => (
+                  <div
+                    key={level.id}
+                    className={`flex-1 py-2 px-3 rounded-lg text-center ${
+                      level.id === 1
+                        ? 'bg-white/30'
+                        : 'bg-white/10 opacity-60'
+                    }`}
+                  >
+                    <p className="text-xs">{level.id}급</p>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setGameState('curriculum')}
+                className="w-full bg-white text-blue-600 rounded-xl py-3 font-bold hover:bg-blue-50 transition-all"
+              >
+                학습 시작하기
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 text-purple-400">
+              <div className="flex-1 h-px bg-purple-200" />
+              <span className="text-sm">모험 모드</span>
+              <div className="flex-1 h-px bg-purple-200" />
+            </div>
+
             {/* New Adventure Button */}
             <button
-              onClick={startNewGame}
+              onClick={startThemeSelection}
               className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02]"
             >
               <div className="flex items-center justify-center gap-3">
@@ -513,6 +707,20 @@ export default function QuestPage() {
                 <span className="font-semibold">{t('existingAdventures')}</span>
               </div>
             </button>
+
+            {/* Topic Progress */}
+            <div className="bg-white/80 backdrop-blur rounded-xl p-4 border border-purple-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-purple-700">{t('topicProgress')}</span>
+                <span className="text-sm text-purple-500">{unlockedTopics.length} / {TOPICS.length}</span>
+              </div>
+              <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
+                  style={{ width: `${(unlockedTopics.length / TOPICS.length) * 100}%` }}
+                />
+              </div>
+            </div>
 
             {/* Difficulty Info */}
             <div className="grid grid-cols-3 gap-3">
@@ -541,6 +749,278 @@ export default function QuestPage() {
           </div>
         )}
 
+        {/* TOPIK Curriculum State */}
+        {gameState === 'curriculum' && (
+          <div className="space-y-4">
+            {/* Level Selector */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {TOPIK_LEVELS.map((level) => {
+                const isAvailable = level.id === 1; // Only TOPIK 1 for MVP
+                return (
+                  <button
+                    key={level.id}
+                    onClick={() => isAvailable && setSelectedTopikLevel(level.id)}
+                    disabled={!isAvailable}
+                    className={`flex-shrink-0 px-4 py-3 rounded-xl font-bold transition-all ${
+                      selectedTopikLevel === level.id
+                        ? level.gradient + ' text-white shadow-lg'
+                        : isAvailable
+                          ? 'bg-white/80 text-gray-700 hover:bg-white'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <p className="text-lg">{level.id}급</p>
+                    <p className="text-xs opacity-80">{getLocalized(level.name)}</p>
+                    {!isAvailable && (
+                      <Lock className="w-4 h-4 mt-1 mx-auto" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Level Info */}
+            {TOPIK_LEVELS.find(l => l.id === selectedTopikLevel) && (
+              <div className={`rounded-xl p-4 text-white ${TOPIK_LEVELS.find(l => l.id === selectedTopikLevel)?.gradient}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-lg">
+                      TOPIK {selectedTopikLevel}급
+                    </h3>
+                    <p className="text-sm opacity-90">
+                      {getLocalized(TOPIK_LEVELS.find(l => l.id === selectedTopikLevel)?.description || { ko: '', mn: '', ru: '', vi: '' })}
+                    </p>
+                  </div>
+                  <div className="text-right text-sm">
+                    <p>{TOPIK_LEVELS.find(l => l.id === selectedTopikLevel)?.vocabCount} 단어</p>
+                    <p>{TOPIK_LEVELS.find(l => l.id === selectedTopikLevel)?.grammarCount} 문법</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Units List */}
+            <div className="space-y-3">
+              {getUnitsForLevel(selectedTopikLevel).map((unit, unitIndex) => (
+                <div
+                  key={unit.id}
+                  className="bg-white/90 backdrop-blur rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+                >
+                  {/* Unit Header */}
+                  <button
+                    onClick={() => setExpandedUnitId(expandedUnitId === unit.id ? null : unit.id)}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-2xl">
+                        {unit.icon}
+                      </div>
+                      <div className="text-left">
+                        <p className="font-bold text-gray-800">
+                          Unit {unit.order}: {getLocalized(unit.name)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {getLocalized(unit.description)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`transition-transform ${expandedUnitId === unit.id ? 'rotate-90' : ''}`}>
+                      <ArrowLeft className="w-5 h-5 text-gray-400 rotate-180" />
+                    </div>
+                  </button>
+
+                  {/* Sections and Lessons */}
+                  {expandedUnitId === unit.id && (
+                    <div className="px-4 pb-4 space-y-3">
+                      {unit.sections.map((section, sectionIndex) => (
+                        <div key={section.id} className="space-y-2">
+                          <p className="text-sm font-semibold text-gray-600 px-2">
+                            {getLocalized(section.name)}
+                          </p>
+                          <div className="grid gap-2">
+                            {section.lessons.map((lesson, lessonIndex) => (
+                              <Link
+                                key={lesson.id}
+                                href={`/${locale}/quest/lesson/${lesson.id}`}
+                                className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-blue-50 rounded-xl transition-colors group"
+                              >
+                                <div className="w-8 h-8 bg-blue-100 group-hover:bg-blue-200 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
+                                  {lessonIndex + 1}
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-medium text-gray-800 group-hover:text-blue-700">
+                                    {getLocalized(lesson.name)}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {lesson.exerciseCount} 활동 · +{lesson.xpReward} XP
+                                  </p>
+                                </div>
+                                <Zap className="w-5 h-5 text-yellow-500" />
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Back Button */}
+            <button
+              onClick={() => setGameState('menu')}
+              className="w-full bg-white/80 backdrop-blur text-gray-700 rounded-xl p-3 font-semibold hover:bg-gray-50 transition-all"
+            >
+              {t('backToMenu')}
+            </button>
+          </div>
+        )}
+
+        {/* Theme Selection State */}
+        {gameState === 'selectTheme' && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-purple-800 text-center mb-4">{t('selectTheme')}</h2>
+
+            <div className="grid grid-cols-2 gap-3">
+              {Object.values(THEMES).map((theme) => (
+                <button
+                  key={theme.id}
+                  onClick={() => handleThemeSelect(theme.id)}
+                  className={`rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] text-white ${theme.colorScheme.gradient}`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    {themeIcons[theme.id]}
+                    <span className="font-bold">{getLocalizedName(theme.name)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setGameState('menu')}
+              className="w-full bg-white/80 backdrop-blur text-purple-700 rounded-xl p-3 font-semibold hover:bg-purple-50 transition-all"
+            >
+              {t('backToMenu')}
+            </button>
+          </div>
+        )}
+
+        {/* Topic Selection State */}
+        {gameState === 'selectTopic' && currentThemeConfig && (
+          <div className="space-y-4">
+            {/* Selected Theme Header */}
+            <div className={`rounded-2xl p-4 text-white ${currentThemeConfig.colorScheme.gradient}`}>
+              <div className="flex items-center gap-3">
+                {themeIcons[currentThemeConfig.id]}
+                <div>
+                  <p className="text-sm opacity-90">{t('selectedTheme')}</p>
+                  <p className="text-xl font-bold">{getLocalizedName(currentThemeConfig.name)}</p>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-lg font-bold text-purple-800">{t('selectTopic')}</h2>
+
+            {/* Beginner Topics */}
+            <div>
+              <p className="text-sm font-semibold text-green-600 mb-2">{t('beginner')}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {TOPICS.filter(t => t.difficulty === 'beginner').map((topic) => {
+                  const unlocked = isTopicUnlocked(topic.id, xp);
+                  return (
+                    <button
+                      key={topic.id}
+                      onClick={() => handleTopicSelect(topic.id)}
+                      disabled={!unlocked}
+                      className={`rounded-xl p-3 text-center transition-all ${
+                        unlocked
+                          ? 'bg-green-100 border-2 border-green-300 text-green-800 hover:bg-green-200'
+                          : 'bg-gray-100 border-2 border-gray-200 text-gray-400'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        {unlocked ? topicIcons[topic.id] : <Lock className="w-5 h-5" />}
+                        <span className="text-xs font-semibold">{getLocalizedName(topic.name)}</span>
+                        {!unlocked && (
+                          <span className="text-[10px]">{topic.xpRequired} XP</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Intermediate Topics */}
+            <div>
+              <p className="text-sm font-semibold text-blue-600 mb-2">{t('intermediate')}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {TOPICS.filter(t => t.difficulty === 'intermediate').map((topic) => {
+                  const unlocked = isTopicUnlocked(topic.id, xp);
+                  return (
+                    <button
+                      key={topic.id}
+                      onClick={() => handleTopicSelect(topic.id)}
+                      disabled={!unlocked}
+                      className={`rounded-xl p-3 text-center transition-all ${
+                        unlocked
+                          ? 'bg-blue-100 border-2 border-blue-300 text-blue-800 hover:bg-blue-200'
+                          : 'bg-gray-100 border-2 border-gray-200 text-gray-400'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        {unlocked ? topicIcons[topic.id] : <Lock className="w-5 h-5" />}
+                        <span className="text-xs font-semibold">{getLocalizedName(topic.name)}</span>
+                        {!unlocked && (
+                          <span className="text-[10px]">{topic.xpRequired} XP</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Advanced Topics */}
+            <div>
+              <p className="text-sm font-semibold text-purple-600 mb-2">{t('advanced')}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {TOPICS.filter(t => t.difficulty === 'advanced').map((topic) => {
+                  const unlocked = isTopicUnlocked(topic.id, xp);
+                  return (
+                    <button
+                      key={topic.id}
+                      onClick={() => handleTopicSelect(topic.id)}
+                      disabled={!unlocked}
+                      className={`rounded-xl p-3 text-center transition-all ${
+                        unlocked
+                          ? 'bg-purple-100 border-2 border-purple-300 text-purple-800 hover:bg-purple-200'
+                          : 'bg-gray-100 border-2 border-gray-200 text-gray-400'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        {unlocked ? topicIcons[topic.id] : <Lock className="w-5 h-5" />}
+                        <span className="text-xs font-semibold">{getLocalizedName(topic.name)}</span>
+                        {!unlocked && (
+                          <span className="text-[10px]">{topic.xpRequired} XP</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setGameState('selectTheme')}
+              className="w-full bg-white/80 backdrop-blur text-purple-700 rounded-xl p-3 font-semibold hover:bg-purple-50 transition-all"
+            >
+              {t('changeTheme')}
+            </button>
+          </div>
+        )}
+
         {/* Set Selection State */}
         {gameState === 'selectSet' && (
           <div className="space-y-4">
@@ -558,7 +1038,7 @@ export default function QuestPage() {
               <div className="bg-white/80 backdrop-blur rounded-xl p-6 text-center">
                 <p className="text-purple-600">{t('noSetsAvailable')}</p>
                 <button
-                  onClick={startNewGame}
+                  onClick={startThemeSelection}
                   className="mt-4 bg-purple-500 text-white px-4 py-2 rounded-lg font-semibold"
                 >
                   {t('createNew')}
@@ -566,24 +1046,30 @@ export default function QuestPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {availableSets.map(set => (
-                  <button
-                    key={set.id}
-                    onClick={() => startWithExistingSet(set.id)}
-                    className="w-full bg-white/80 backdrop-blur rounded-xl p-4 border border-purple-200 text-left hover:bg-purple-50 transition-all"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-bold text-purple-800">{set.title}</p>
-                        <p className="text-xs text-purple-500">{set.id}</p>
+                {availableSets.map(set => {
+                  const setTheme = getTheme(set.theme);
+                  return (
+                    <button
+                      key={set.id}
+                      onClick={() => startWithExistingSet(set.id)}
+                      className={`w-full rounded-xl p-4 text-left hover:opacity-90 transition-all text-white ${setTheme?.colorScheme.gradient || 'bg-gradient-to-r from-purple-500 to-indigo-600'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {themeIcons[set.theme]}
+                          <div>
+                            <p className="font-bold">{set.title}</p>
+                            <p className="text-xs opacity-80">{setTheme ? getLocalizedName(setTheme.name) : set.theme}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">{set.sceneCount} {t('scenes')}</p>
+                          <p className="text-xs opacity-80">{set.playCount} {t('plays')}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-purple-600">{set.sceneCount} {t('scenes')}</p>
-                        <p className="text-xs text-purple-400">{set.playCount} {t('plays')}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -592,10 +1078,10 @@ export default function QuestPage() {
         {/* Loading State with Progress Bar */}
         {gameState === 'loading' && (
           <div className="bg-white/90 backdrop-blur rounded-2xl p-8 shadow-lg border border-purple-200">
-            {/* Castle Icon */}
+            {/* Theme Icon */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center animate-pulse">
-                <MapPin className="w-10 h-10 text-white" />
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center animate-pulse text-white ${currentThemeConfig?.colorScheme.gradient || 'bg-gradient-to-br from-purple-400 to-indigo-500'}`}>
+                {currentThemeConfig ? themeIcons[currentThemeConfig.id] : <MapPin className="w-10 h-10" />}
               </div>
             </div>
 
@@ -608,7 +1094,7 @@ export default function QuestPage() {
             <div className="mb-4">
               <div className="h-4 bg-purple-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-400 via-indigo-500 to-purple-600 rounded-full transition-all duration-300 relative"
+                  className={`h-full rounded-full transition-all duration-300 relative ${currentThemeConfig?.colorScheme.gradient || 'bg-gradient-to-r from-purple-400 via-indigo-500 to-purple-600'}`}
                   style={{ width: `${Math.min(loadingProgress, 100)}%` }}
                 >
                   <div className="absolute inset-0 bg-white/30 animate-pulse" />
@@ -790,7 +1276,7 @@ export default function QuestPage() {
         {/* Result State */}
         {gameState === 'result' && (
           <div className="bg-white/90 backdrop-blur rounded-2xl p-8 shadow-lg border border-purple-200 text-center">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center">
+            <div className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${currentThemeConfig?.colorScheme.gradient || 'bg-gradient-to-br from-purple-400 to-indigo-500'}`}>
               <Trophy className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-purple-800 mb-2">{t('questComplete')}</h2>
@@ -808,14 +1294,18 @@ export default function QuestPage() {
 
             <div className="space-y-3">
               <button
-                onClick={startNewGame}
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl py-3 font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                onClick={startThemeSelection}
+                className={`w-full text-white rounded-xl py-3 font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 ${currentThemeConfig?.colorScheme.gradient || 'bg-gradient-to-r from-purple-500 to-indigo-600'}`}
               >
                 <RefreshCw className="w-5 h-5" />
                 {t('newAdventure')}
               </button>
               <button
-                onClick={() => setGameState('menu')}
+                onClick={() => {
+                  setGameState('menu');
+                  setSelectedTheme(null);
+                  setSelectedTopic(null);
+                }}
                 className="w-full bg-purple-100 text-purple-700 rounded-xl py-3 font-bold hover:bg-purple-200 transition-all"
               >
                 {t('backToMenu')}
@@ -826,7 +1316,7 @@ export default function QuestPage() {
 
         {/* Level Up State */}
         {gameState === 'levelup' && (
-          <div className="bg-gradient-to-br from-purple-400 to-indigo-500 rounded-2xl p-8 shadow-lg text-center text-white">
+          <div className={`rounded-2xl p-8 shadow-lg text-center text-white ${currentThemeConfig?.colorScheme.gradient || 'bg-gradient-to-br from-purple-400 to-indigo-500'}`}>
             <div className="w-24 h-24 mx-auto mb-4 bg-white/20 backdrop-blur rounded-full flex items-center justify-center animate-bounce">
               <Star className="w-12 h-12 text-white" />
             </div>

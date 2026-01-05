@@ -7,7 +7,22 @@
     "cancel": "Отмена",
     "save": "Сохранить",
     "loading": "Загрузка...",
-    "error": "Произошла ошибка"
+    "error": "Произошла ошибка",
+    "viewAll": "Показать все"
+  },
+  "auth": {
+    "signInWithGoogle": "Войти через Google",
+    "signOut": "Выйти",
+    "signInError": "Ошибка при входе",
+    "useSchoolAccount": "Используйте школьный аккаунт Google",
+    "privacyNotice": "Входя в систему, вы соглашаетесь с политикой конфиденциальности",
+    "features": {
+      "learning": "Обучение",
+      "multilingual": "Многоязычный",
+      "secure": "Безопасный"
+    },
+    "profile": "Профиль",
+    "settings": "Настройки"
   },
   "nav": {
     "home": "Главная",
@@ -17,11 +32,18 @@
     "leave": "Заявка на выход",
     "health": "Здоровье",
     "meals": "Питание",
-    "booking": "Бронирование"
+    "booking": "Бронирование",
+    "groups": {
+      "learning": "Обучение",
+      "schoolLife": "Школьная жизнь",
+      "healthSafety": "Здоровье/Безопасность",
+      "communication": "Общение"
+    }
   },
   "dashboard": {
     "greeting": "Привет!",
     "todayDate": "Сегодня",
+    "quickAccess": "Быстрый доступ",
     "features": {
       "chat": {
         "title": "Вопросы о правилах",
@@ -82,6 +104,42 @@
       "parentPortal": {
         "title": "Портал для родителей",
         "desc": "Информация для родителей"
+      },
+      "translationListen": {
+        "title": "Субтитры урока",
+        "desc": "Субтитры в реальном времени"
+      },
+      "translationBroadcast": {
+        "title": "Трансляция урока",
+        "desc": "Транслировать содержание урока"
+      }
+    },
+    "widgets": {
+      "meals": {
+        "title": "Меню на сегодня",
+        "now": "Сейчас"
+      },
+      "announcements": {
+        "title": "Объявления сегодня",
+        "urgent": "Срочно",
+        "important": "Важно",
+        "general": "Общее",
+        "noAnnouncements": "Нет новых объявлений"
+      },
+      "korean": {
+        "title": "Корейский сегодня",
+        "continue": "Продолжить",
+        "streak": "Дней подряд",
+        "completed": "Завершено квестов",
+        "todayWord": "Слово дня",
+        "startQuest": "Начать квест"
+      },
+      "schedule": {
+        "title": "Мое расписание",
+        "leaveRequests": "Заявки на выход",
+        "bookings": "Бронирования",
+        "noSchedule": "Нет запланированных событий",
+        "loginRequired": "Войдите в систему"
       }
     }
   },
@@ -276,6 +334,14 @@
     "wrong": "Неправильно",
     "setId": "Номер приключения",
     "avgScore": "Средний балл",
-    "totalScore": "Общий счёт"
+    "totalScore": "Общий счёт",
+    "selectTheme": "Выбрать тему",
+    "selectedTheme": "Выбранная тема",
+    "selectTopic": "Выбрать словарь",
+    "changeTheme": "Сменить тему",
+    "topicProgress": "Прогресс словаря",
+    "beginner": "Начальный",
+    "intermediate": "Средний",
+    "advanced": "Продвинутый"
   }
 }
