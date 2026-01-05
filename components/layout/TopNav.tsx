@@ -101,6 +101,9 @@ const locales = [
   { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
 ];
 
+// Check if auth is enabled via public env var
+const isAuthEnabled = process.env.NEXT_PUBLIC_AUTH_ENABLED === 'true';
+
 export default function TopNav() {
   const { data: session, status } = useSession();
   const t = useTranslations();
@@ -234,8 +237,8 @@ export default function TopNav() {
               )}
             </div>
 
-            {/* User Menu / Login */}
-            {isAuthenticated && session?.user ? (
+            {/* User Menu / Login - Only show if auth is enabled */}
+            {isAuthEnabled && isAuthenticated && session?.user ? (
               <div
                 className="relative"
                 onMouseEnter={() => setUserDropdownOpen(true)}
@@ -282,7 +285,7 @@ export default function TopNav() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : isAuthEnabled ? (
               <Link
                 href={localizedHref('/login')}
                 className="flex items-center gap-2 px-4 py-2 bg-oat-600 text-white rounded-lg text-sm font-medium hover:bg-oat-700 transition-colors shadow-sm"
@@ -290,7 +293,7 @@ export default function TopNav() {
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('auth.signInWithGoogle')}</span>
               </Link>
-            )}
+            ) : null}
 
             {/* Mobile Menu Button */}
             <button
