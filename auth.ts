@@ -106,9 +106,39 @@ const config: NextAuthConfig = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl)) return url;
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      return baseUrl;
+      // Log for debugging
+      console.log('Redirect callback:', { url, baseUrl });
+
+      // Handle relative URLs (e.g., /ko, /ko/admin)
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+
+      // Handle absolute URLs on the same domain
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+
+      // Handle URLs that might have callbackUrl as a parameter
+      try {
+        const urlObj = new URL(url, baseUrl);
+        const callbackUrl = urlObj.searchParams.get('callbackUrl');
+        if (callbackUrl) {
+          // Decode the callbackUrl
+          const decoded = decodeURIComponent(callbackUrl);
+          if (decoded.startsWith('/')) {
+            return `${baseUrl}${decoded}`;
+          }
+          if (decoded.startsWith(baseUrl)) {
+            return decoded;
+          }
+        }
+      } catch {
+        // Ignore URL parsing errors
+      }
+
+      // Default to Korean home page
+      return `${baseUrl}/ko`;
     },
   },
   pages: {
