@@ -59,8 +59,8 @@ if (isOAuthConfigured) {
 
 // Build config conditionally
 const config: NextAuthConfig = {
-  // Only use database adapter if pool exists
-  ...(pool && { adapter: PostgresAdapter(pool) }),
+  // Disable database adapter - use JWT only for now
+  // ...(pool && { adapter: PostgresAdapter(pool) }),
   providers,
   callbacks: {
     async signIn({ user }) {
@@ -216,8 +216,8 @@ const config: NextAuthConfig = {
     error: "/ko/login",
   },
   session: {
-    // Use JWT if no database, otherwise use database sessions
-    strategy: pool ? "database" : "jwt",
+    // Force JWT mode - database adapter has compatibility issues
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
   },
   trustHost: true,
