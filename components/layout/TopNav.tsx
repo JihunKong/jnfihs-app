@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { useParams, usePathname } from 'next/navigation';
@@ -115,6 +115,11 @@ export default function TopNav() {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
+  // Refs for timeout management to prevent menus from closing too quickly
+  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const langTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const userTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const userRole = session?.user?.role as UserRole | undefined;
   const isAuthenticated = status === 'authenticated';
 
@@ -148,11 +153,45 @@ export default function TopNav() {
   };
 
   const handleDropdownEnter = (key: string) => {
+    if (dropdownTimeoutRef.current) {
+      clearTimeout(dropdownTimeoutRef.current);
+      dropdownTimeoutRef.current = null;
+    }
     setActiveDropdown(key);
   };
 
   const handleDropdownLeave = () => {
-    setActiveDropdown(null);
+    dropdownTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 150);
+  };
+
+  const handleLangDropdownEnter = () => {
+    if (langTimeoutRef.current) {
+      clearTimeout(langTimeoutRef.current);
+      langTimeoutRef.current = null;
+    }
+    setLangDropdownOpen(true);
+  };
+
+  const handleLangDropdownLeave = () => {
+    langTimeoutRef.current = setTimeout(() => {
+      setLangDropdownOpen(false);
+    }, 150);
+  };
+
+  const handleUserDropdownEnter = () => {
+    if (userTimeoutRef.current) {
+      clearTimeout(userTimeoutRef.current);
+      userTimeoutRef.current = null;
+    }
+    setUserDropdownOpen(true);
+  };
+
+  const handleUserDropdownLeave = () => {
+    userTimeoutRef.current = setTimeout(() => {
+      setUserDropdownOpen(false);
+    }, 150);
   };
 
   const handleSignOut = async () => {
@@ -226,8 +265,8 @@ export default function TopNav() {
             {/* Language Selector */}
             <div
               className="relative"
-              onMouseEnter={() => setLangDropdownOpen(true)}
-              onMouseLeave={() => setLangDropdownOpen(false)}
+              onMouseEnter={handleLangDropdownEnter}
+              onMouseLeave={handleLangDropdownLeave}
             >
               <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-oat-600 hover:bg-oat-100 transition-colors">
                 <Globe className="w-4 h-4" />
@@ -258,8 +297,8 @@ export default function TopNav() {
             {isAuthEnabled && isAuthenticated && session?.user ? (
               <div
                 className="relative"
-                onMouseEnter={() => setUserDropdownOpen(true)}
-                onMouseLeave={() => setUserDropdownOpen(false)}
+                onMouseEnter={handleUserDropdownEnter}
+                onMouseLeave={handleUserDropdownLeave}
               >
                 <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-oat-100 transition-colors">
                   {session.user.image ? (

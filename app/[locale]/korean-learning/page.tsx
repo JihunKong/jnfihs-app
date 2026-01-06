@@ -47,12 +47,17 @@ export default function KoreanLearningPage() {
 
   // Load progress from localStorage on mount
   useEffect(() => {
-    const savedProgress = localStorage.getItem('koreanLearningProgress');
-    if (savedProgress) {
-      const progress = JSON.parse(savedProgress);
-      setXp(progress.xp || 0);
-      setStreak(progress.streak || 0);
-      setLevel(calculateLevel(progress.xp || 0));
+    try {
+      const savedProgress = localStorage.getItem('koreanLearningProgress');
+      if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        setXp(progress.xp || 0);
+        setStreak(progress.streak || 0);
+        setLevel(calculateLevel(progress.xp || 0));
+      }
+    } catch (e) {
+      console.error('Failed to load progress:', e);
+      localStorage.removeItem('koreanLearningProgress');
     }
   }, []);
 
@@ -104,8 +109,13 @@ export default function KoreanLearningPage() {
       newQuestions.push({ word, options, imageUrl });
     }
 
-    setQuestions(newQuestions);
-    setCurrentQuestion(newQuestions[0]);
+    // Validate questions before starting
+    if (newQuestions.length > 0) {
+      setQuestions(newQuestions);
+      setCurrentQuestion(newQuestions[0]);
+    } else {
+      setQuizState('menu');
+    }
     setIsLoading(false);
   };
 
@@ -310,7 +320,7 @@ export default function KoreanLearningPage() {
 
                   {/* Question text in user's language */}
                   <p className="text-center text-oat-600 mb-2">
-                    {currentQuestion.word.translations[locale as keyof typeof currentQuestion.word.translations] ||
+                    {(locale && locale !== 'ko' && currentQuestion.word.translations[locale as 'mn' | 'ru' | 'vi']) ||
                       currentQuestion.word.translations.mn}
                   </p>
 

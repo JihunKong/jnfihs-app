@@ -233,12 +233,17 @@ export default function QuestPage() {
 
   // Load progress from localStorage
   useEffect(() => {
-    const savedProgress = localStorage.getItem('questProgress');
-    if (savedProgress) {
-      const progress = JSON.parse(savedProgress);
-      setXp(progress.xp || 0);
-      setStreak(progress.streak || 0);
-      setLevel(calculateLevel(progress.xp || 0));
+    try {
+      const savedProgress = localStorage.getItem('questProgress');
+      if (savedProgress) {
+        const progress = JSON.parse(savedProgress);
+        setXp(progress.xp || 0);
+        setStreak(progress.streak || 0);
+        setLevel(calculateLevel(progress.xp || 0));
+      }
+    } catch (e) {
+      console.error('Failed to load quest progress:', e);
+      localStorage.removeItem('questProgress');
     }
   }, []);
 
@@ -312,6 +317,25 @@ export default function QuestPage() {
       }
 
       const data = await response.json();
+
+      // Validate storySet structure
+      if (!data.storySet || !data.storySet.scenes || !Array.isArray(data.storySet.scenes)) {
+        console.error('Invalid storySet structure:', data);
+        setError(t('errorGenerating'));
+        return null;
+      }
+
+      // Filter out any invalid scenes
+      data.storySet.scenes = data.storySet.scenes.filter(
+        (scene: StoryScene) => scene && scene.choices && Array.isArray(scene.choices)
+      );
+
+      if (data.storySet.scenes.length === 0) {
+        console.error('No valid scenes in storySet');
+        setError(t('errorGenerating'));
+        return null;
+      }
+
       return data.storySet;
     } catch (err) {
       console.error('Story set generation error:', err);

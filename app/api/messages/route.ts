@@ -13,15 +13,34 @@ type Message = {
 type Teacher = {
   id: string;
   name: string;
+  email: string;
   role: string;
 };
 
-// Demo teachers list
-const teachers: Teacher[] = [
-  { id: 'teacher-001', name: '김선생님', role: '담임' },
-  { id: 'teacher-002', name: '이선생님', role: '상담' },
-  { id: 'teacher-003', name: '박선생님', role: '교과' },
+// Fallback teachers list if DB is not available
+const fallbackTeachers: Teacher[] = [
+  { id: 'teacher-001', name: '김선생님', email: 'kim@jnfihs.kr', role: 'teacher' },
+  { id: 'teacher-002', name: '이선생님', email: 'lee@jnfihs.kr', role: 'teacher' },
+  { id: 'teacher-003', name: '박선생님', email: 'park@jnfihs.kr', role: 'teacher' },
 ];
+
+// Fetch teachers from database
+async function getTeachers(): Promise<Teacher[]> {
+  try {
+    const result = await query<Teacher>(
+      `SELECT id, name, email, role FROM users
+       WHERE role IN ('teacher', 'admin') AND status = 'active'
+       ORDER BY name ASC`
+    );
+    if (result && result.length > 0) {
+      return result;
+    }
+    return fallbackTeachers;
+  } catch (error) {
+    console.error('Failed to fetch teachers from DB:', error);
+    return fallbackTeachers;
+  }
+}
 
 // In-memory message store
 const messages: Message[] = [];
@@ -36,6 +55,7 @@ export async function GET(req: NextRequest) {
 
   // Get teacher list
   if (action === 'teachers') {
+    const teachers = await getTeachers();
     return NextResponse.json({ teachers });
   }
 

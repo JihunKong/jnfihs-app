@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { Send, ArrowLeft, User, MessageCircle } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { Send, ArrowLeft, User, MessageCircle, LogIn, Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -11,6 +14,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 type Teacher = {
   id: string;
   name: string;
+  email?: string;
   role: string;
 };
 
@@ -25,6 +29,9 @@ type Message = {
 
 export default function MessengerPage() {
   const t = useTranslations('messenger');
+  const tAuth = useTranslations('auth');
+  const { data: session, status } = useSession();
+  const { locale } = useParams();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,19 +39,22 @@ export default function MessengerPage() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const studentId = 'student-001';
+  // Use session user ID instead of hardcoded value
+  const userId = session?.user?.id;
 
   useEffect(() => {
-    fetchTeachers();
-  }, []);
+    if (userId) {
+      fetchTeachers();
+    }
+  }, [userId]);
 
   useEffect(() => {
-    if (selectedTeacher) {
+    if (selectedTeacher && userId) {
       fetchMessages();
       const interval = setInterval(fetchMessages, 3000);
       return () => clearInterval(interval);
     }
-  }, [selectedTeacher]);
+  }, [selectedTeacher, userId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -61,10 +71,10 @@ export default function MessengerPage() {
   };
 
   const fetchMessages = async () => {
-    if (!selectedTeacher) return;
+    if (!selectedTeacher || !userId) return;
     try {
       const res = await fetch(
-        `/api/messages?senderId=${studentId}&receiverId=${selectedTeacher.id}`
+        `/api/messages?senderId=${userId}&receiverId=${selectedTeacher.id}`
       );
       const data = await res.json();
       setMessages(data.messages || []);
@@ -75,7 +85,7 @@ export default function MessengerPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderId: selectedTeacher.id,
-          receiverId: studentId,
+          receiverId: userId,
         }),
       });
     } catch (error) {
@@ -84,7 +94,7 @@ export default function MessengerPage() {
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || !selectedTeacher || loading) return;
+    if (!input.trim() || !selectedTeacher || loading || !userId) return;
 
     setLoading(true);
     try {
@@ -92,7 +102,7 @@ export default function MessengerPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          senderId: studentId,
+          senderId: userId,
           receiverId: selectedTeacher.id,
           content: input.trim(),
         }),
@@ -115,6 +125,42 @@ export default function MessengerPage() {
       sendMessage();
     }
   };
+
+  // Loading state
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-oat-50 pb-24">
+        <Header showBack title={t('title')} />
+        <main className="max-w-2xl mx-auto p-4 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-oat-500 animate-spin" />
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
+
+  // Unauthenticated state
+  if (status === 'unauthenticated' || !userId) {
+    return (
+      <div className="min-h-screen bg-oat-50 pb-24">
+        <Header showBack title={t('title')} />
+        <main className="max-w-2xl mx-auto p-4">
+          <GlassCard className="text-center py-8">
+            <LogIn className="w-12 h-12 text-oat-400 mx-auto mb-4" />
+            <p className="text-oat-600 mb-4">{t('selectTeacher')}</p>
+            <Link
+              href={`/${locale}/login`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-oat-600 text-white rounded-lg text-sm font-medium hover:bg-oat-700 transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              {tAuth('signInWithGoogle')}
+            </Link>
+          </GlassCard>
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
 
   // Teacher list view
   if (!selectedTeacher) {
@@ -187,11 +233,11 @@ export default function MessengerPage() {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.sender_id === studentId ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.sender_id === userId ? 'justify-end' : 'justify-start'}`}
           >
             <div
               className={`max-w-[75%] p-3 rounded-2xl ${
-                msg.sender_id === studentId
+                msg.sender_id === userId
                   ? 'bg-oat-700 text-white rounded-br-sm'
                   : 'glass-card rounded-bl-sm'
               }`}
@@ -199,7 +245,7 @@ export default function MessengerPage() {
               <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
               <p
                 className={`text-xs mt-1 ${
-                  msg.sender_id === studentId ? 'text-oat-200' : 'text-oat-400'
+                  msg.sender_id === userId ? 'text-oat-200' : 'text-oat-400'
                 }`}
               >
                 {new Date(msg.created_at).toLocaleTimeString([], {

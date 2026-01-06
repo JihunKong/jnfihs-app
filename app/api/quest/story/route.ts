@@ -364,19 +364,32 @@ export async function POST(req: NextRequest) {
     const themeConfig = getTheme(theme) || THEMES.medieval;
     const topicConfig = getTopic(topic) || TOPICS[0];
 
+    // Safe defaults for vocabulary
+    const defaultVocab = [
+      { korean: '친구', translation: { mn: 'найз', ru: 'друг', vi: 'bạn' } },
+      { korean: '물', translation: { mn: 'ус', ru: 'вода', vi: 'nước' } },
+      { korean: '책', translation: { mn: 'ном', ru: 'книга', vi: 'sách' } }
+    ];
+
+    // Safely access vocabulary with fallbacks
+    const safeVocab = topicConfig?.vocabulary || [];
+    const vocab0 = safeVocab[0] || defaultVocab[0];
+    const vocab1 = safeVocab[1] || defaultVocab[1];
+    const vocab2 = safeVocab[2] || defaultVocab[2];
+
     // Return a fallback story set on error
     const fallbackScenes: StoryScene[] = Array.from({ length: 10 }, (_, i) => ({
-      story: `${themeConfig.settings.locations[0] || '여기'}에 왔어요! ${themeConfig.settings.characters[0] || '누군가'}가 다가와요. (장면 ${i + 1})`,
-      npc_dialogue: `${themeConfig.settings.characters[0] || '친구'}: "안녕하세요! 뭘 찾아요?"`,
+      story: `${themeConfig?.settings?.locations?.[0] || '여기'}에 왔어요! ${themeConfig?.settings?.characters?.[0] || '누군가'}가 다가와요. (장면 ${i + 1})`,
+      npc_dialogue: `${themeConfig?.settings?.characters?.[0] || '친구'}: "안녕하세요! 뭘 찾아요?"`,
       blank_sentence: `저기 (___) 가 있어요!`,
       choices: [
-        { korean: topicConfig.vocabulary[0]?.korean || '친구', correct: true, translation: topicConfig.vocabulary[0]?.translation || { mn: 'найз', ru: 'друг', vi: 'bạn' } },
-        { korean: topicConfig.vocabulary[1]?.korean || '물', correct: false, translation: topicConfig.vocabulary[1]?.translation || { mn: 'ус', ru: 'вода', vi: 'nước' } },
-        { korean: topicConfig.vocabulary[2]?.korean || '책', correct: false, translation: topicConfig.vocabulary[2]?.translation || { mn: 'ном', ru: 'книга', vi: 'sách' } }
+        { korean: vocab0.korean, correct: true, translation: vocab0.translation },
+        { korean: vocab1.korean, correct: false, translation: vocab1.translation },
+        { korean: vocab2.korean, correct: false, translation: vocab2.translation }
       ],
-      hint: `${topicConfig.name.ko} 관련 단어예요!`,
+      hint: `${topicConfig?.name?.ko || '한국어'} 관련 단어예요!`,
       vocabulary: [
-        { word: topicConfig.vocabulary[0]?.korean || '단어', meaning: topicConfig.vocabulary[0]?.translation || { mn: 'үг', ru: 'слово', vi: 'từ' } }
+        { word: vocab0.korean, meaning: vocab0.translation }
       ],
       xp_reward: 10
     }));
@@ -386,7 +399,7 @@ export async function POST(req: NextRequest) {
       level: 1,
       theme,
       topic,
-      title: `${themeConfig.name.ko} 기본 모험: ${topicConfig.name.ko}`,
+      title: `${themeConfig?.name?.ko || '한국어'} 기본 모험: ${topicConfig?.name?.ko || '기초'}`,
       scenes: fallbackScenes,
       createdAt: new Date().toISOString(),
       playCount: 0,
