@@ -27,6 +27,7 @@
   "nav": {
     "loginRequired": "Требуется вход",
     "home": "Главная",
+    "admin": "Админ",
     "chat": "Вопросы",
     "translation": "Перевод урока",
     "messenger": "Мессенджер",

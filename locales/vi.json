@@ -27,6 +27,7 @@
   "nav": {
     "loginRequired": "Yêu cầu đăng nhập",
     "home": "Trang chủ",
+    "admin": "Quản trị",
     "chat": "Hỏi đáp",
     "translation": "Dịch bài giảng",
     "messenger": "Tin nhắn",

@@ -28,6 +28,7 @@ import {
   Users,
   School,
   Settings,
+  Shield,
 } from 'lucide-react';
 import type { UserRole } from '@/types/next-auth';
 
@@ -284,6 +285,15 @@ export default function TopNav() {
                         {userRole}
                       </span>
                     </div>
+                    {userRole === 'admin' && (
+                      <Link
+                        href={localizedHref('/admin')}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-purple-600 hover:bg-purple-50 transition-colors"
+                      >
+                        <Shield className="w-4 h-4" />
+                        <span>{t('nav.admin')}</span>
+                      </Link>
+                    )}
                     <Link
                       href={localizedHref('/settings')}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-oat-600 hover:bg-oat-50 transition-colors"

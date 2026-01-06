@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
   image VARCHAR(500),
   -- JNFIHS specific fields
   role VARCHAR(20) NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin', 'parent')),
+  status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'deleted')),
   locale VARCHAR(5) DEFAULT 'ko' CHECK (locale IN ('ko', 'mn', 'ru', 'vi')),
   student_id VARCHAR(50),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -61,6 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

@@ -55,6 +55,23 @@ const config: NextAuthConfig = {
           return false;
         }
       }
+
+      // Check if user is suspended
+      if (pool) {
+        try {
+          const result = await pool.query(
+            'SELECT status FROM users WHERE email = $1',
+            [email]
+          );
+          if (result.rows.length > 0 && result.rows[0].status === 'suspended') {
+            console.warn(`Sign-in rejected: ${email} is suspended`);
+            return false;
+          }
+        } catch (err) {
+          console.error('Error checking user status:', err);
+        }
+      }
+
       return true;
     },
     async session({ session, user }) {

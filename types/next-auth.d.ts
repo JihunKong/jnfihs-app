@@ -2,6 +2,7 @@ import { DefaultSession, DefaultUser } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 export type UserRole = "student" | "teacher" | "admin" | "parent";
+export type UserStatus = "active" | "suspended" | "deleted";
 export type UserLocale = "ko" | "mn" | "ru" | "vi";
 
 declare module "next-auth" {
@@ -16,6 +17,7 @@ declare module "next-auth" {
 
   interface User extends DefaultUser {
     role: UserRole;
+    status: UserStatus;
     locale: UserLocale;
     student_id?: string;
   }
@@ -33,6 +35,7 @@ declare module "next-auth/jwt" {
 declare module "@auth/core/adapters" {
   interface AdapterUser {
     role: UserRole;
+    status: UserStatus;
     locale: UserLocale;
     student_id?: string;
   }
