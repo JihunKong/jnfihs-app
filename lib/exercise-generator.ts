@@ -55,8 +55,11 @@ function createChoicesFromVocab(
   allVocab: VocabularyWord[],
   useKorean: boolean = false
 ): Choice[] {
+  // Filter out invalid vocabulary items
+  const validVocab = allVocab.filter(v => v && v.id && v.korean && v.meaning);
+
   // Get 3 wrong answers from the same tags if possible
-  const wrongChoices = allVocab
+  const wrongChoices = validVocab
     .filter(v => v.id !== correctWord.id)
     .sort(() => Math.random() - 0.5)
     .slice(0, 3);
@@ -68,7 +71,7 @@ function createChoicesFromVocab(
       translation: correctWord.meaning,
       isCorrect: true
     },
-    ...wrongChoices.map(v => ({
+    ...wrongChoices.filter(Boolean).map(v => ({
       id: v.id,
       text: useKorean ? v.korean : '',
       translation: v.meaning,
@@ -118,7 +121,7 @@ export function generateWordAudioExercise(
   choices.forEach(c => {
     if (c.isCorrect) {
       c.text = word.korean;
-    } else {
+    } else if (c.id) {
       const vocab = allVocab.find(v => v.id === c.id);
       if (vocab) c.text = vocab.korean;
     }
@@ -180,7 +183,7 @@ export function generateFillBlankExercise(
   const sentence = word.exampleSentence.korean.replace(word.korean, '(___)');
 
   const wrongWords = allVocab
-    .filter(v => v.id !== word.id && v.partOfSpeech === word.partOfSpeech)
+    .filter(v => v && v.id && v.id !== word.id && v.partOfSpeech === word.partOfSpeech)
     .sort(() => Math.random() - 0.5)
     .slice(0, 3);
 
@@ -191,7 +194,7 @@ export function generateFillBlankExercise(
       translation: word.meaning,
       isCorrect: true
     },
-    ...wrongWords.map(v => ({
+    ...wrongWords.filter(Boolean).map(v => ({
       id: v.id,
       text: v.korean,
       translation: v.meaning,
@@ -569,6 +572,7 @@ const IMAGE_CATEGORIES: Record<string, string[]> = {
 function getImageUrlForWord(word: VocabularyWord): string | null {
   // Generate placeholder image URL based on vocabulary tags
   // In production, this would point to actual image assets
+  if (!word.tags || word.tags.length === 0) return null;
   const tag = word.tags[0];
   if (tag && IMAGE_CATEGORIES[tag]) {
     // Use a placeholder service or local assets
@@ -583,6 +587,9 @@ export function generateWordPictureExercise(
   lessonId: string,
   order: number
 ): WordPictureExercise | null {
+  // Check if word has tags
+  if (!word.tags || word.tags.length === 0) return null;
+
   // Only generate for words that can have meaningful images
   const imageableTags = ['food', 'animal', 'body', 'weather', 'nature', 'place', 'object'];
   const hasImageableTag = word.tags.some(tag => imageableTags.includes(tag));
@@ -595,12 +602,13 @@ export function generateWordPictureExercise(
   // Get wrong choices from the same category for better distraction
   const sameTagWords = allVocab.filter(v =>
     v.id !== word.id &&
+    v.tags && v.tags.length > 0 &&
     v.tags.some(tag => word.tags.includes(tag))
   );
 
   const differentTagWords = allVocab.filter(v =>
     v.id !== word.id &&
-    !v.tags.some(tag => word.tags.includes(tag))
+    (!v.tags || v.tags.length === 0 || !v.tags.some(tag => word.tags.includes(tag)))
   );
 
   // Prefer same-category distractors, fill with different if needed
@@ -972,8 +980,20 @@ export function generateLessonExercises(
   } = options;
 
   // Get vocabulary for this lesson
-  const lessonVocab = getVocabularyByLesson(lessonId);
+  let lessonVocab = getVocabularyByLesson(lessonId);
   const allVocab = getRandomVocabulary(20);
+
+  // Fallback to random vocabulary if lesson vocabulary is empty
+  if (!lessonVocab || lessonVocab.length === 0) {
+    console.warn(`No vocabulary found for lesson ${lessonId}, using random vocabulary`);
+    lessonVocab = allVocab.slice(0, 5);
+  }
+
+  // If still empty, return empty exercises
+  if (lessonVocab.length === 0) {
+    console.error('No vocabulary available for exercises');
+    return [];
+  }
 
   // Get grammar points
   const grammarPoints = TOPIK1_GRAMMAR.filter(g => grammarIds.includes(g.id));
@@ -987,6 +1007,7 @@ export function generateLessonExercises(
 
   exerciseTypes.forEach((type, order) => {
     const word = lessonVocab[vocabIndex % lessonVocab.length];
+    if (!word) return; // Skip if word is undefined
     vocabIndex++;
 
     let exercise: Exercise | null = null;
