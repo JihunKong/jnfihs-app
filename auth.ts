@@ -67,12 +67,19 @@ const config: NextAuthConfig = {
       const email = user.email || "";
       const allowedDomains = process.env.ALLOWED_EMAIL_DOMAINS?.split(",") || [];
 
-      if (allowedDomains.length > 0) {
+      // Allow emails in INITIAL_ROLES to bypass domain restriction
+      const isPrivilegedEmail = email in INITIAL_ROLES;
+
+      if (allowedDomains.length > 0 && !isPrivilegedEmail) {
         const domain = email.split("@")[1];
         if (!allowedDomains.includes(domain)) {
           console.warn(`Sign-in rejected: ${email} not in allowed domains`);
           return false;
         }
+      }
+
+      if (isPrivilegedEmail) {
+        console.log(`Privileged email ${email} allowed to sign in`);
       }
 
       // Check if user is suspended and apply initial roles
