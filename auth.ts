@@ -11,6 +11,12 @@ const isOAuthConfigured = !!(
   process.env.GOOGLE_CLIENT_SECRET
 );
 
+// Initial role assignments for specific emails
+const INITIAL_ROLES: Record<string, UserRole> = {
+  'purusil55@gmail.com': 'teacher',
+  'purusil54@gmail.com': 'admin',
+};
+
 // Create PostgreSQL pool only if DATABASE_URL is set
 const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL })
@@ -56,16 +62,32 @@ const config: NextAuthConfig = {
         }
       }
 
-      // Check if user is suspended
+      // Check if user is suspended and apply initial roles
       if (pool) {
         try {
           const result = await pool.query(
-            'SELECT status FROM users WHERE email = $1',
+            'SELECT id, status, role FROM users WHERE email = $1',
             [email]
           );
-          if (result.rows.length > 0 && result.rows[0].status === 'suspended') {
-            console.warn(`Sign-in rejected: ${email} is suspended`);
-            return false;
+
+          if (result.rows.length > 0) {
+            const dbUser = result.rows[0];
+
+            // Check if suspended
+            if (dbUser.status === 'suspended') {
+              console.warn(`Sign-in rejected: ${email} is suspended`);
+              return false;
+            }
+
+            // Apply initial role if user has predefined role and current role is student
+            const initialRole = INITIAL_ROLES[email];
+            if (initialRole && dbUser.role === 'student') {
+              await pool.query(
+                'UPDATE users SET role = $1 WHERE id = $2',
+                [initialRole, dbUser.id]
+              );
+              console.log(`Applied initial role '${initialRole}' to ${email}`);
+            }
           }
         } catch (err) {
           console.error('Error checking user status:', err);
