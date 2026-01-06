@@ -153,40 +153,59 @@ const config: NextAuthConfig = {
       // Log for debugging
       console.log('Redirect callback:', { url, baseUrl });
 
+      // Ensure baseUrl doesn't have trailing slash
+      const base = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+
       // Handle relative URLs (e.g., /ko, /ko/admin)
       if (url.startsWith('/')) {
-        return `${baseUrl}${url}`;
+        const redirectUrl = `${base}${url}`;
+        console.log('Redirecting to relative URL:', redirectUrl);
+        return redirectUrl;
       }
 
-      // Handle absolute URLs on the same domain
-      if (url.startsWith(baseUrl)) {
-        return url;
-      }
-
-      // Handle URLs that might have callbackUrl as a parameter
+      // Handle absolute URLs on the same origin
       try {
-        const urlObj = new URL(url, baseUrl);
+        const urlObj = new URL(url);
+        const baseObj = new URL(base);
+
+        // Same origin - allow the redirect
+        if (urlObj.origin === baseObj.origin) {
+          console.log('Redirecting to same-origin URL:', url);
+          return url;
+        }
+
+        // Check for callbackUrl in search params
         const callbackUrl = urlObj.searchParams.get('callbackUrl');
         if (callbackUrl) {
-          // Decode the callbackUrl
           const decoded = decodeURIComponent(callbackUrl);
           if (decoded.startsWith('/')) {
-            return `${baseUrl}${decoded}`;
+            const redirectUrl = `${base}${decoded}`;
+            console.log('Redirecting to callbackUrl:', redirectUrl);
+            return redirectUrl;
           }
-          if (decoded.startsWith(baseUrl)) {
-            return decoded;
+          // Check if decoded URL is same origin
+          try {
+            const decodedObj = new URL(decoded);
+            if (decodedObj.origin === baseObj.origin) {
+              console.log('Redirecting to decoded callbackUrl:', decoded);
+              return decoded;
+            }
+          } catch {
+            // Not a valid URL, ignore
           }
         }
       } catch {
-        // Ignore URL parsing errors
+        // URL parsing failed
+        console.log('URL parsing failed for:', url);
       }
 
       // Default to Korean home page
-      return `${baseUrl}/ko`;
+      const defaultUrl = `${base}/ko`;
+      console.log('Redirecting to default:', defaultUrl);
+      return defaultUrl;
     },
   },
   pages: {
-    signIn: "/ko/login",
     error: "/ko/login",
   },
   session: {

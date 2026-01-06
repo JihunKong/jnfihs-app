@@ -3,7 +3,7 @@
 import { Suspense } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import { useRouter, useSearchParams, useParams, usePathname } from 'next/navigation';
+import { useSearchParams, useParams, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Globe, Loader2, School, Shield, BookOpen } from 'lucide-react';
 
@@ -16,7 +16,6 @@ const languages = [
 
 function LoginContent() {
   const t = useTranslations();
-  const router = useRouter();
   const { locale } = useParams();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -27,11 +26,15 @@ function LoginContent() {
   const callbackUrl = searchParams.get('callbackUrl') || `/${locale}`;
 
   // Redirect if already authenticated
+  // Use window.location.href for full page redirect to ensure cookies are properly set
   useEffect(() => {
     if (status === 'authenticated' && session) {
-      router.push(callbackUrl);
+      // Force full page navigation to ensure session cookie is sent
+      window.location.href = callbackUrl.startsWith('/')
+        ? callbackUrl
+        : `/${locale}`;
     }
-  }, [status, session, router, callbackUrl]);
+  }, [status, session, callbackUrl, locale]);
 
   const handleGoogleSignIn = async () => {
     try {
