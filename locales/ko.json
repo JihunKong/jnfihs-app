@@ -25,6 +25,7 @@
     "settings": "설정"
   },
   "nav": {
+    "loginRequired": "로그인이 필요합니다",
     "home": "홈",
     "chat": "규정 문의",
     "translation": "수업 번역",

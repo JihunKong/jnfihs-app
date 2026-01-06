@@ -15,7 +15,7 @@ export function GlassButton({
   className = '',
   ...props
 }: GlassButtonProps) {
-  const baseClasses = 'font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-oat-500/50 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-oat-500/50 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantClasses = {
     default: 'glass-button',

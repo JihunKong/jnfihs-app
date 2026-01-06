@@ -8,8 +8,122 @@ type Meal = {
   allergens: string[];
 };
 
-// Demo meal data for a week
-function generateWeekMeals(): Meal[] {
+// NEIS API configuration
+const NEIS_API_KEY = process.env.NEIS_API_KEY;
+const ATPT_OFCDC_SC_CODE = 'Q10'; // 전남교육청
+const SD_SCHUL_CODE = '8000074'; // 전남미래국제고 (실제 코드로 교체 필요)
+
+// Parse NEIS meal data
+function parseNeisMeal(dishName: string): string[] {
+  // Remove allergen info (numbers in parentheses) and split
+  return dishName
+    .split('<br/>')
+    .map(item => item.replace(/\([0-9.,]+\)/g, '').trim())
+    .filter(item => item.length > 0);
+}
+
+// Extract allergen info from NEIS data
+function parseAllergens(dishName: string): string[] {
+  const allergenMap: Record<string, string> = {
+    '1': '난류', '2': '우유', '3': '메밀', '4': '땅콩',
+    '5': '대두', '6': '밀', '7': '고등어', '8': '게',
+    '9': '새우', '10': '돼지고기', '11': '복숭아', '12': '토마토',
+    '13': '아황산류', '14': '호두', '15': '닭고기', '16': '쇠고기',
+    '17': '오징어', '18': '조개류', '19': '잣',
+  };
+
+  const allergenNumbers = new Set<string>();
+  const regex = /\(([0-9.,]+)\)/g;
+  let match;
+
+  while ((match = regex.exec(dishName)) !== null) {
+    match[1].split('.').forEach(num => allergenNumbers.add(num));
+  }
+
+  return Array.from(allergenNumbers)
+    .map(num => allergenMap[num])
+    .filter(Boolean);
+}
+
+// Fetch meals from NEIS API
+async function fetchNeisWeekMeals(): Promise<Meal[] | null> {
+  if (!NEIS_API_KEY) {
+    console.log('NEIS_API_KEY not configured, using demo data');
+    return null;
+  }
+
+  try {
+    const today = new Date();
+    const meals: Meal[] = [];
+
+    // Get meals for the current week (Monday to Sunday)
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - today.getDay() + 1);
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+
+      const url = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${NEIS_API_KEY}&Type=json&ATPT_OFCDC_SC_CODE=${ATPT_OFCDC_SC_CODE}&SD_SCHUL_CODE=${SD_SCHUL_CODE}&MLSV_YMD=${dateStr}`;
+
+      const response = await fetch(url, { next: { revalidate: 3600 } }); // Cache for 1 hour
+      const data = await response.json();
+
+      const mealInfo = data?.mealServiceDietInfo?.[1]?.row;
+
+      if (mealInfo && mealInfo.length > 0) {
+        const meal: Meal = {
+          date: date.toISOString().split('T')[0],
+          breakfast: [],
+          lunch: [],
+          dinner: [],
+          allergens: [],
+        };
+
+        const allAllergens = new Set<string>();
+
+        for (const row of mealInfo) {
+          const items = parseNeisMeal(row.DDISH_NM || '');
+          const allergens = parseAllergens(row.DDISH_NM || '');
+          allergens.forEach(a => allAllergens.add(a));
+
+          switch (row.MMEAL_SC_NM) {
+            case '조식':
+              meal.breakfast = items;
+              break;
+            case '중식':
+              meal.lunch = items;
+              break;
+            case '석식':
+              meal.dinner = items;
+              break;
+          }
+        }
+
+        meal.allergens = Array.from(allAllergens);
+        meals.push(meal);
+      } else {
+        // No meal data for this day
+        meals.push({
+          date: date.toISOString().split('T')[0],
+          breakfast: [],
+          lunch: [],
+          dinner: [],
+          allergens: [],
+        });
+      }
+    }
+
+    return meals;
+  } catch (error) {
+    console.error('Failed to fetch NEIS meals:', error);
+    return null;
+  }
+}
+
+// Demo meal data fallback
+function generateDemoMeals(): Meal[] {
   const meals: Meal[] = [];
   const today = new Date();
 
@@ -71,12 +185,38 @@ function generateWeekMeals(): Meal[] {
   return meals;
 }
 
-const weekMeals = generateWeekMeals();
+// Cache for NEIS meals
+let cachedMeals: Meal[] | null = null;
+let cacheTime: number = 0;
+const CACHE_DURATION = 3600000; // 1 hour
+
+async function getWeekMeals(): Promise<Meal[]> {
+  const now = Date.now();
+
+  // Return cached data if still valid
+  if (cachedMeals && (now - cacheTime) < CACHE_DURATION) {
+    return cachedMeals;
+  }
+
+  // Try to fetch from NEIS
+  const neisMeals = await fetchNeisWeekMeals();
+
+  if (neisMeals) {
+    cachedMeals = neisMeals;
+    cacheTime = now;
+    return neisMeals;
+  }
+
+  // Fallback to demo data
+  return generateDemoMeals();
+}
 
 // GET: Fetch meals
 export async function GET(req: NextRequest) {
   const date = req.nextUrl.searchParams.get('date');
   const week = req.nextUrl.searchParams.get('week');
+
+  const weekMeals = await getWeekMeals();
 
   if (date) {
     const meal = weekMeals.find((m) => m.date === date);

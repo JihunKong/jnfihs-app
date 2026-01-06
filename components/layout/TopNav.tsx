@@ -136,11 +136,13 @@ export default function TopNav() {
   };
 
   // Filter menu groups based on user role
+  // Show all groups but indicate if login is required for empty ones
   const getFilteredGroups = () => {
     return menuConfig.filter((group) => {
-      if (!userRole) return !group.roles;
-      if (group.roles && !group.roles.includes(userRole)) return false;
-      return getFilteredItems(group.items).length > 0;
+      // If group has role restriction and user has a role, check if allowed
+      if (group.roles && userRole && !group.roles.includes(userRole)) return false;
+      // Show all other groups (even if empty - will show login prompt)
+      return true;
     });
   };
 
@@ -186,18 +188,32 @@ export default function TopNav() {
                 {/* Dropdown */}
                 {activeDropdown === group.key && (
                   <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-oat-200 py-2 animate-fadeIn">
-                    {getFilteredItems(group.items).map((item) => (
-                      <Link
-                        key={item.key}
-                        href={localizedHref(item.href)}
-                        className={`flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-oat-50 transition-colors ${
-                          pathWithoutLocale === item.href ? 'text-oat-700 bg-oat-50 font-medium' : 'text-oat-600'
-                        }`}
-                      >
-                        {item.icon}
-                        <span>{t(`dashboard.features.${item.key}.title`)}</span>
-                      </Link>
-                    ))}
+                    {getFilteredItems(group.items).length > 0 ? (
+                      getFilteredItems(group.items).map((item) => (
+                        <Link
+                          key={item.key}
+                          href={localizedHref(item.href)}
+                          className={`flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-oat-50 transition-colors ${
+                            pathWithoutLocale === item.href ? 'text-oat-700 bg-oat-50 font-medium' : 'text-oat-600'
+                          }`}
+                        >
+                          {item.icon}
+                          <span>{t(`dashboard.features.${item.key}.title`)}</span>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-center">
+                        <p className="text-sm text-oat-500 mb-2">{t('nav.loginRequired')}</p>
+                        {isAuthEnabled && (
+                          <Link
+                            href={localizedHref('/login')}
+                            className="inline-block px-3 py-1.5 bg-oat-100 text-oat-700 rounded-lg text-xs font-medium hover:bg-oat-200 transition-colors"
+                          >
+                            {t('auth.signInWithGoogle')}
+                          </Link>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

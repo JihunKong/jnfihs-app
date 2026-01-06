@@ -25,6 +25,7 @@
     "settings": "Настройки"
   },
   "nav": {
+    "loginRequired": "Требуется вход",
     "home": "Главная",
     "chat": "Вопросы",
     "translation": "Перевод урока",

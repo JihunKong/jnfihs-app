@@ -25,6 +25,7 @@
     "settings": "Cài đặt"
   },
   "nav": {
+    "loginRequired": "Yêu cầu đăng nhập",
     "home": "Trang chủ",
     "chat": "Hỏi đáp",
     "translation": "Dịch bài giảng",
