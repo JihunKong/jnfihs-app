@@ -54,6 +54,18 @@ export default function ExerciseRenderer({
     return obj[locale as keyof typeof obj] || obj.ko;
   };
 
+  // Reset all state when exercise changes
+  useEffect(() => {
+    setSelectedAnswer(null);
+    setTypedAnswer('');
+    setOrderedWords([]);
+    setIsChecking(false);
+    setResult(null);
+    setHintShown(false);
+    setIsListening(false);
+    setPronunciationScore(null);
+  }, [exercise.id]);
+
   // Auto-play audio for listening exercises
   useEffect(() => {
     if (config.requiresAudio && !config.requiresMicrophone) {

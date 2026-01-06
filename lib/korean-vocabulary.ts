@@ -4320,8 +4320,19 @@ export function getVocabularyBySection(sectionId: string): VocabularyWord[] {
   return TOPIK1_VOCABULARY.filter(v => v.sectionId === sectionId);
 }
 
+// Convert curriculum lesson ID (les-1-1-1-1) to vocabulary lesson ID (topik1-unit1-sec1-lesson1)
+function convertLessonId(lessonId: string): string {
+  // les-{level}-{unit}-{section}-{lesson}
+  const match = lessonId.match(/^les-(\d+)-(\d+)-(\d+)-(\d+)$/);
+  if (!match) return lessonId;
+
+  const [, level, unit, section, lesson] = match;
+  return `topik${level}-unit${unit}-sec${section}-lesson${lesson}`;
+}
+
 export function getVocabularyByLesson(lessonId: string): VocabularyWord[] {
-  return TOPIK1_VOCABULARY.filter(v => v.lessonId === lessonId);
+  const convertedId = convertLessonId(lessonId);
+  return TOPIK1_VOCABULARY.filter(v => v.lessonId === convertedId);
 }
 
 export function getVocabularyByTags(tags: string[]): VocabularyWord[] {
