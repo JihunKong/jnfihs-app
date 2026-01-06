@@ -17,10 +17,23 @@ const INITIAL_ROLES: Record<string, UserRole> = {
   'purusil54@gmail.com': 'admin',
 };
 
-// Create PostgreSQL pool only if DATABASE_URL is set
-const pool = process.env.DATABASE_URL
+// Validate DATABASE_URL is not a placeholder
+const isValidDatabaseUrl = (url: string | undefined): boolean => {
+  if (!url) return false;
+  // Detect placeholder patterns like "user:password@host" or just "host:5432"
+  if (url.includes('@host:') || url.includes('@host/')) return false;
+  if (url.includes('user:password@')) return false;
+  return true;
+};
+
+// Create PostgreSQL pool only if DATABASE_URL is set and valid
+const pool = isValidDatabaseUrl(process.env.DATABASE_URL)
   ? new Pool({ connectionString: process.env.DATABASE_URL })
   : null;
+
+if (process.env.DATABASE_URL && !pool) {
+  console.warn('DATABASE_URL appears to be a placeholder, using JWT session strategy');
+}
 
 // Build providers array conditionally
 const providers: NextAuthConfig["providers"] = [];
@@ -96,12 +109,43 @@ const config: NextAuthConfig = {
 
       return true;
     },
-    async session({ session, user }) {
+    async jwt({ token, user }) {
+      // Only called in JWT mode
+      if (user) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (token as any).id = user.id || token.sub;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (token as any).role = (user as { role?: string }).role || "student";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (token as any).locale = (user as { locale?: string }).locale || "ko";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (token as any).studentId = (user as { student_id?: string }).student_id;
+        // Apply initial role for specific emails
+        const email = user.email || "";
+        const initialRole = INITIAL_ROLES[email];
+        if (initialRole) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (token as any).role = initialRole;
+        }
+      }
+      return token;
+    },
+    async session({ session, token, user }) {
       if (session.user) {
-        session.user.id = user.id;
-        session.user.role = (user.role as UserRole) || "student";
-        session.user.locale = (user.locale as UserLocale) || "ko";
-        session.user.studentId = user.student_id;
+        // JWT mode: get data from token
+        if (token) {
+          session.user.id = (token.id || token.sub) as string;
+          session.user.role = (token.role as UserRole) || "student";
+          session.user.locale = (token.locale as UserLocale) || "ko";
+          session.user.studentId = token.studentId as string | undefined;
+        }
+        // Database mode: get data from user (overrides token if available)
+        if (user) {
+          session.user.id = user.id;
+          session.user.role = (user.role as UserRole) || "student";
+          session.user.locale = (user.locale as UserLocale) || "ko";
+          session.user.studentId = user.student_id;
+        }
       }
       return session;
     },
